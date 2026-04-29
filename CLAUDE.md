@@ -62,6 +62,6 @@ When working on React/frontend code (triggered automatically by the model):
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at `specs/001-expense-tracker/plan.md`.
+at `specs/002-expense-donut-chart/plan.md`.
 <!-- SPECKIT END -->
 
