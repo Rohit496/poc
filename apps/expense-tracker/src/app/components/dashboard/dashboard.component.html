@@ -20,14 +20,39 @@
         </div>
 
         <div class="category-breakdown">
-          <h2>By Category</h2>
-          @if (categoryTotals$ | async; as totals) {
-            @for (cat of categories; track cat) {
-              <div class="category-row" data-testid="category-row">
-                <span class="category-name">{{ cat }}</span>
-                <span class="category-amount">${{ totals[cat] | number: '1.2-2' }}</span>
-              </div>
-            }
+          <div class="category-breakdown-header">
+            <h2>By Category</h2>
+            <div class="view-toggle">
+              <button
+                class="btn btn-sm"
+                [class.btn-active]="categoryView === 'list'"
+                (click)="onToggleView('list')"
+                data-testid="toggle-list"
+              >List</button>
+              <button
+                class="btn btn-sm"
+                [class.btn-active]="categoryView === 'chart'"
+                (click)="onToggleView('chart')"
+                data-testid="toggle-chart"
+              >Chart</button>
+            </div>
+          </div>
+
+          @if (categoryView === 'list') {
+            <div data-testid="category-list">
+              @if (categoryTotals$ | async; as totals) {
+                @for (cat of categories; track cat) {
+                  <div class="category-row" data-testid="category-row">
+                    <span class="category-name">{{ cat }}</span>
+                    <span class="category-amount">${{ totals[cat] | number: '1.2-2' }}</span>
+                  </div>
+                }
+              }
+            </div>
+          } @else {
+            <div class="category-chart-container" data-testid="category-chart">
+              <app-donut-chart [slices]="(slices$ | async)!" />
+            </div>
           }
         </div>
       </section>

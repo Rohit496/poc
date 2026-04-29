@@ -103,13 +103,51 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+.category-breakdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
 .category-breakdown h2 {
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #6b7280;
-  margin-bottom: 12px;
+  margin-bottom: 0;
+}
+
+/* List / Chart toggle */
+.view-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.view-toggle .btn-sm {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.view-toggle .btn-sm.btn-active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+/* Chart container inside breakdown card */
+.category-chart-container {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+@media (max-width: 480px) {
+  .summary-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 .category-row {

@@ -3,8 +3,9 @@ import { provideRouter } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
 import { ExpenseService } from '../../services/expense.service';
+import { StorageService } from '../../services/storage.service';
 import { Expense, ExpenseCategory } from '../../models/expense.model';
-import { EXPENSE_CATEGORIES } from '../../constants/categories';
+import { EXPENSE_CATEGORIES, CATEGORY_VIEW_STORAGE_KEY } from '../../constants/categories';
 
 const makeExpense = (overrides: Partial<Expense> = {}): Expense => ({
   id: Math.random().toString(),
@@ -21,6 +22,7 @@ describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let expensesSubject: BehaviorSubject<Expense[]>;
   let expenseServiceSpy: Partial<ExpenseService>;
+  let storageServiceSpy: Partial<StorageService>;
 
   beforeEach(async () => {
     expensesSubject = new BehaviorSubject<Expense[]>([]);
@@ -33,11 +35,17 @@ describe('DashboardComponent', () => {
       ),
     };
 
+    storageServiceSpy = {
+      get: jest.fn().mockReturnValue(null),
+      set: jest.fn(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
         provideRouter([]),
         { provide: ExpenseService, useValue: expenseServiceSpy },
+        { provide: StorageService, useValue: storageServiceSpy },
       ],
     }).compileComponents();
 
@@ -155,6 +163,81 @@ describe('DashboardComponent', () => {
 
       const dialog = fixture.nativeElement.querySelector('[data-testid="cancel-btn"]');
       expect(dialog).toBeFalsy();
+    });
+  });
+
+  describe('category view toggle', () => {
+    it('should show toggle buttons when expenses exist', () => {
+      expensesSubject.next([makeExpense()]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="toggle-list"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="toggle-chart"]')).not.toBeNull();
+    });
+
+    it('should not show toggle buttons in empty state', () => {
+      expensesSubject.next([]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="toggle-list"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="toggle-chart"]')).toBeNull();
+    });
+
+    it('should show category-list and hide category-chart when categoryView is list', () => {
+      expensesSubject.next([makeExpense()]);
+      component.categoryView = 'list';
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="category-list"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="category-chart"]')).toBeNull();
+    });
+
+    it('should show category-chart and hide category-list when categoryView is chart', () => {
+      expensesSubject.next([makeExpense({ amount: 50, category: 'Food' })]);
+      (expenseServiceSpy.getCategoryTotals as jest.Mock).mockReturnValue(
+        Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [c, c === 'Food' ? 50 : 0])) as Record<ExpenseCategory, number>
+      );
+      component.categoryView = 'chart';
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="category-chart"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="category-list"]')).toBeNull();
+    });
+
+    it('should call StorageService.set with chart when toggle-chart is clicked', () => {
+      expensesSubject.next([makeExpense()]);
+      fixture.detectChanges();
+      fixture.nativeElement.querySelector('[data-testid="toggle-chart"]').click();
+      fixture.detectChanges();
+      expect(storageServiceSpy.set).toHaveBeenCalledWith(CATEGORY_VIEW_STORAGE_KEY, 'chart');
+    });
+
+    it('should call StorageService.set with list when toggle-list is clicked after being in chart view', () => {
+      expensesSubject.next([makeExpense()]);
+      component.categoryView = 'chart';
+      fixture.detectChanges();
+      fixture.nativeElement.querySelector('[data-testid="toggle-list"]').click();
+      fixture.detectChanges();
+      expect(storageServiceSpy.set).toHaveBeenCalledWith(CATEGORY_VIEW_STORAGE_KEY, 'list');
+    });
+
+    it('should read StorageService.get on init and set categoryView', async () => {
+      (storageServiceSpy.get as jest.Mock).mockReturnValue('chart');
+
+      await TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [DashboardComponent],
+        providers: [
+          provideRouter([]),
+          { provide: ExpenseService, useValue: expenseServiceSpy },
+          { provide: StorageService, useValue: storageServiceSpy },
+        ],
+      }).compileComponents();
+
+      const f2 = TestBed.createComponent(DashboardComponent);
+      f2.detectChanges();
+      expect(f2.componentInstance.categoryView).toBe('chart');
+    });
+
+    it('should default categoryView to list when StorageService.get returns null', () => {
+      (storageServiceSpy.get as jest.Mock).mockReturnValue(null);
+      expect(component.categoryView).toBe('list');
     });
   });
 });

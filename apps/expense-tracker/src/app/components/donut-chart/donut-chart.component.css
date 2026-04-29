@@ -1,0 +1,58 @@
+.donut-chart-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 300px;
+}
+
+.donut-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.donut-slice {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.donut-slice:hover {
+  opacity: 0.85;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 10;
+  min-width: 100px;
+  text-align: center;
+}
+
+.tooltip-category {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.tooltip-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.tooltip-percentage {
+  font-size: 0.8rem;
+  color: #666;
+}
