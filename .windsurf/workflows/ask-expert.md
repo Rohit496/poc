@@ -1,105 +1,126 @@
 ---
-description: Route a focused codebase question to Devin as an Expert AI with curated context, then compose the final answer.
+description: General/factual questions → Main AI direct (free model). Codebase/complex questions → full 4-step pipeline (paid Expert AI at Step 3). No slash command needed.
+auto_execution_mode: 2
 ---
 
-# Ask Expert
+# Ask Expert Pipeline
 
-Delegate a targeted codebase question to Devin CLI with only the relevant context — no full-repo exploration on the Devin side.
+Route based on question type. General/factual questions are answered directly by the free Main AI model (Steps 2–3 skipped). Codebase-specific or complex questions run all 4 steps, invoking the paid Expert AI at Step 3.
 
-## When to use
+## Benefits
 
-- Architectural or cross-cutting questions that benefit from a second reasoning pass
-- Questions where you want an answer grounded in specific code snippets, not a hallucinated summary
-- Any question the user explicitly prefixes with `@expert` or asks to "run through Devin"
+- **Structured answers** — evidence-grounded responses every time
+- **Automatic** — pipeline fires on every question, no manual steps
+- **Efficient** — Virtual Context is only written when codebase data is needed
+- **Scalable** — never reads more than ≤300 lines regardless of codebase size
+- **Focused** — Expert AI receives only what is relevant, nothing more
+
+## Model Tiers
+
+| Tier | Model       | Role                  | Responsibility                                                            | Active in                        |
+| ---- | ----------- | --------------------- | ------------------------------------------------------------------------- | -------------------------------- |
+| 🟢   | 🆓 **Free** | **Main AI Assistant** | Understands question, fetches context, delivers answer                    | Steps 1, 2, 4                    |
+| 🟡   | 🆓 **Free** | **Virtual Context**   | On-demand knowledge layer written from codebase data                      | Step 2 (codebase questions only) |
+| 🔵   | 💰 **Paid** | **Expert AI**         | Deep reasoning over fetched context — only for complex/codebase questions | Step 3                           |
+
+## Pipeline Flow
+
+```
+[User Question]
+      │
+      ▼
+┌─────────────────────────────────────────┐
+│  🟢 Main AI Assistant  [🆓 FREE]           │
+│                                         │
+│  Step 1 — Parse the question            │
+│  ├─ General/factual? ──► Answer now.    │
+│  └─ Complex/codebase? ─► Continue ↓      │
+└────────────────────┴────────────────────┘
+                     │ (codebase/complex only)
+┌─────────────────────────────────────────┐
+│  🟢 Main AI Assistant  [🆓 FREE]           │
+│                                         │
+│  Step 2 — Fetch relevant code/data      │
+└────────────────────┴────────────────────┘
+                     │ writes ≤300 lines
+                     ▼
+            ┌──────────────────┐
+            │  🟡 Virtual      │
+            │     Context      │
+            └────────┴─────────┘
+                     │ feeds just-in-time
+                     ▼
+┌─────────────────────────────────────────┐
+│  🔵 Expert AI  [💰 PAID]                   │
+│                                         │
+│  Step 3 — Reason over fetched context   │
+└────────────────────┴────────────────────┘
+                     │ expert answer
+                     ▼
+┌─────────────────────────────────────────┐
+│  🟢 Main AI Assistant  [🆓 FREE]           │
+│                                         │
+│  Step 4 — Synthesize and deliver        │
+└────────────────────┴────────────────────┘
+                     │
+                     ▼
+              [Answer to User]
+```
 
 ## Steps
 
-### 1 — Parse the question
+### Step 1 — Parse the Question · 🟢 Main AI (FREE)
 
-Read the user's question. Extract:
-- **Key symbols**: function names, class names, file names, config keys mentioned
-- **Intent**: what is being asked (explain / debug / refactor / compare / …)
-- **Scope**: which directory or layer is most relevant (e.g. `src/`, `scripts/`, root config files)
+Extract from the question:
 
-### 2 — Collect targeted context
+- **Intent**: explain / debug / refactor / compare / …
+- **Key symbols**: function names, class names, file names mentioned
+- **Scope**: which directory or layer is relevant
 
-Run `grep`/`rg`/`read` — do NOT read the whole repo. Pull only what is directly relevant:
+**Decision gate:**
 
-```bash
-# find definition of a symbol
-rg -n "functionName" --type ts -l
+- General / factual question (no codebase needed)? → **Answer directly. STOP. Do NOT proceed to Steps 2 or 3.** (free model)
+- Codebase-specific / complex / deep reasoning? → Proceed to Step 2.
 
-# read a specific file or range
-# (use line-offset reads for large files)
+### Step 2 — Fetch Code/Data · 🟢 Main AI (FREE) · _codebase questions only_
 
-# find usages
-rg -n "symbolName" src/ --type ts
-```
-
-Collect at most **~300 lines** total across all snippets. Include file paths and line numbers with every excerpt.
-
-### 3 — Generate a task ID
+**Codebase question** → run targeted searches, fetch ≤300 lines, write `.virtual-context/<TASK_ID>.md`:
 
 ```bash
 TASK_ID=$(date +%Y%m%d-%H%M%S)
+mkdir -p .virtual-context
 ```
 
-### 4 — Write the virtual-context file
-
-Create `.virtual-context/${TASK_ID}.md` with this structure:
-
 ```markdown
-# Expert Task: <one-line restatement of the question>
+# Expert Task: <one-line restatement>
 
 ## Question
 
-<exact user question, verbatim>
+<exact user question>
 
 ## Relevant Code Snippets
 
-### <file-path>:<start-line>-<end-line>
+### <file-path>:<start>-<end>
 
 \`\`\`<lang>
 <snippet>
 \`\`\`
 
-### <next-file-path> …
-
-…
-
 ## Instructions
 
-Answer the question above using only the snippets provided. Be precise and concise.
-If the snippets are insufficient to answer definitively, say so and state what additional
-file/symbol would resolve the ambiguity.
+Answer using only the snippets above. Cite file:line for every claim.
 ```
 
-### 5 — Invoke Devin
+**General knowledge question** → no file is created. Do NOT proceed to Step 3 — answer directly.
 
-```bash
-./scripts/ask-expert.sh "$TASK_ID"
-```
+### Step 3 — Reason over Context · 🔵 Expert AI (PAID) · _codebase questions only_
 
-Capture stdout as `EXPERT_RESPONSE`.
+Invoke the `ask-expert-reasoning` skill. Expert AI receives only the Virtual Context and reasons over it. Never accesses the codebase directly. **Never invoke for general/factual questions.**
 
-### 6 — Compose and present the answer
+### Step 4 — Deliver Final Answer · 🟢 Main AI (FREE)
 
-Synthesize `EXPERT_RESPONSE` with your own understanding. Present:
-1. **Direct answer** to the user's question
-2. **Evidence** — cite specific file:line references from the snippets
-3. **Caveats** — anything Devin flagged as uncertain or needing more context
+Synthesize the expert answer:
 
-Do not just paste Devin's raw output. Integrate it.
-
-## Output template
-
-```
-Expert Answer
-
-Question: <one-line restatement>
-Task ID:  <TASK_ID>  (context saved to .virtual-context/<TASK_ID>.md)
-
-<synthesized answer with file:line citations>
-
-Confidence: high / medium / low — <reason>
-```
+1. **Direct answer** to the question
+2. **Evidence** — cite `file:line` references (for codebase questions)
+3. **Confidence**: high / medium / low

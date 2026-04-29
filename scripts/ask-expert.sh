@@ -10,6 +10,9 @@ set -euo pipefail
 TASK_ID="${1:?Usage: ask-expert.sh <task-id> [extra-prompt]}"
 CONTEXT_FILE=".virtual-context/${TASK_ID}.md"
 
+# Guarantee the directory exists (gitignored, so absent on fresh clones).
+mkdir -p .virtual-context
+
 if [[ ! -f "$CONTEXT_FILE" ]]; then
   echo "Error: context file not found: $CONTEXT_FILE" >&2
   exit 1
@@ -22,11 +25,9 @@ echo "=== ask-expert: task=${TASK_ID} ===" >&2
 echo "Context: ${CONTEXT_FILE}" >&2
 echo "" >&2
 
-if [[ -n "$EXTRA_PROMPT" ]]; then
-  devin --prompt-file "$CONTEXT_FILE" -p "$EXTRA_PROMPT"
-else
-  devin --prompt-file "$CONTEXT_FILE" -p
-fi
+CMD=(devin --prompt-file "$CONTEXT_FILE")
+[[ -n "$EXTRA_PROMPT" ]] && CMD+=(-p "$EXTRA_PROMPT")
+"${CMD[@]}"
 
 EXIT_CODE=$?
 

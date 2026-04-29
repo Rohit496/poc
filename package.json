@@ -14,5 +14,8 @@
   "type": "commonjs",
   "devDependencies": {
     "jest": "^30.3.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.91.1"
   }
 }
