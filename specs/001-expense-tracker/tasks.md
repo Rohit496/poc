@@ -31,10 +31,10 @@ implementation file.
 
 **Purpose**: Scaffold the Angular project and configure testing infrastructure.
 
-- [ ] T001 Scaffold Angular 17+ project at `apps/expense-tracker/` using Angular CLI with standalone and routing flags (`ng new expense-tracker --standalone --routing --style=css`)
-- [ ] T002 [P] Configure `apps/expense-tracker/tsconfig.json` with `"strict": true` and `"strictTemplates": true`
-- [ ] T003 [P] Install and configure `jest-preset-angular` — add `jest.config.ts` and update `apps/expense-tracker/package.json` test script to use Jest instead of Karma
-- [ ] T004 [P] Create `apps/expense-tracker/src/server/.gitkeep` placeholder directory for future server-side logic
+- [x] T001 Scaffold Angular 17+ project at `apps/expense-tracker/` using Angular CLI with standalone and routing flags (`ng new expense-tracker --standalone --routing --style=css`)
+- [x] T002 [P] Configure `apps/expense-tracker/tsconfig.json` with `"strict": true` and `"strictTemplates": true`
+- [x] T003 [P] Install and configure `jest-preset-angular` — add `jest.config.js` and update `apps/expense-tracker/package.json` test script to use Jest instead of Karma
+- [x] T004 [P] Create `apps/expense-tracker/src/server/.gitkeep` placeholder directory for future server-side logic
 
 ---
 
@@ -45,14 +45,14 @@ No user story work can begin until this phase is complete.
 
 **⚠️ CRITICAL**: Complete this phase before starting any user story phase.
 
-- [ ] T005 Create `Expense` interface and `NewExpenseInput` type and `ExpenseCategory` union type in `apps/expense-tracker/src/app/models/expense.model.ts` — exact shape from data-model.md
-- [ ] T006 [P] Create `EXPENSE_CATEGORIES` constant array in `apps/expense-tracker/src/app/constants/categories.ts` — values: Food, Transport, Housing, Entertainment, Health, Shopping, Other
-- [ ] T007 Write failing unit tests for `StorageService` in `apps/expense-tracker/src/app/services/storage.service.spec.ts` — test `get()` returns null on missing key, `set()` round-trips via JSON, `get()` returns null on parse error, `remove()` clears key
-- [ ] T008 Implement `StorageService` in `apps/expense-tracker/src/app/services/storage.service.ts` — `providedIn: 'root'`; `get<T>()`, `set<T>()`, `remove()` wrapping `localStorage` (verify T007 tests fail first, then pass after implementation)
-- [ ] T009 Write failing unit tests for `ExpenseService` in `apps/expense-tracker/src/app/services/expense.service.spec.ts` — test `addExpense()` generates id+createdAt, rounds amount to 2dp, emits on `expenses$`; `deleteExpense()` removes by id; `getAllTimeTotal()` sums correctly; `getCategoryTotals()` returns all 7 categories; `getRecentExpenses()` returns newest-first slice
-- [ ] T010 Implement `ExpenseService` in `apps/expense-tracker/src/app/services/expense.service.ts` — `providedIn: 'root'`; `BehaviorSubject<Expense[]>` source of truth; reads from `StorageService` on init; all methods per `contracts/service-contracts.md` (verify T009 tests fail first, then pass)
-- [ ] T011 [P] Define routes in `apps/expense-tracker/src/app/app.routes.ts` — `/` → `DashboardComponent`, `/add` → `AddExpenseComponent` (eager, no lazy loading)
-- [ ] T012 [P] Configure `apps/expense-tracker/src/app/app.config.ts` with `provideRouter(routes)` and update `apps/expense-tracker/src/app/app.component.ts` as a minimal `<router-outlet>` shell with no business logic
+- [x] T005 Create `Expense` interface and `NewExpenseInput` type and `ExpenseCategory` union type in `apps/expense-tracker/src/app/models/expense.model.ts` — exact shape from data-model.md
+- [x] T006 [P] Create `EXPENSE_CATEGORIES` constant array in `apps/expense-tracker/src/app/constants/categories.ts` — values: Food, Transport, Housing, Entertainment, Health, Shopping, Other
+- [x] T007 Write failing unit tests for `StorageService` in `apps/expense-tracker/src/app/services/storage.service.spec.ts` — test `get()` returns null on missing key, `set()` round-trips via JSON, `get()` returns null on parse error, `remove()` clears key
+- [x] T008 Implement `StorageService` in `apps/expense-tracker/src/app/services/storage.service.ts` — `providedIn: 'root'`; `get<T>()`, `set<T>()`, `remove()` wrapping `localStorage` (verify T007 tests fail first, then pass after implementation)
+- [x] T009 Write failing unit tests for `ExpenseService` in `apps/expense-tracker/src/app/services/expense.service.spec.ts` — test `addExpense()` generates id+createdAt, rounds amount to 2dp, emits on `expenses$`; `deleteExpense()` removes by id; `getAllTimeTotal()` sums correctly; `getCategoryTotals()` returns all 7 categories; `getRecentExpenses()` returns newest-first slice
+- [x] T010 Implement `ExpenseService` in `apps/expense-tracker/src/app/services/expense.service.ts` — `providedIn: 'root'`; `BehaviorSubject<Expense[]>` source of truth; reads from `StorageService` on init; all methods per `contracts/service-contracts.md` (verify T009 tests fail first, then pass)
+- [x] T011 [P] Define routes in `apps/expense-tracker/src/app/app.routes.ts` — `/` → `DashboardComponent`, `/add` → `AddExpenseComponent` (eager, no lazy loading)
+- [x] T012 [P] Configure `apps/expense-tracker/src/app/app.config.ts` with `provideRouter(routes)` and update `apps/expense-tracker/src/app/app.component.ts` as a minimal `<router-outlet>` shell with no business logic
 
 **Checkpoint**: Foundation ready — `StorageService` and `ExpenseService` tests pass; routing configured; user story phases can now begin in parallel.
 
@@ -68,12 +68,12 @@ appears on the dashboard at `/` with correct values.
 
 ### Tests for User Story 1 ⚠️ WRITE FIRST — MUST FAIL BEFORE T015
 
-- [ ] T013 [P] [US1] Write failing unit tests for `AddExpenseComponent` in `apps/expense-tracker/src/app/components/add-expense/add-expense.component.spec.ts` — test: form invalid when amount empty; form invalid when amount ≤ 0; form invalid when category missing; form valid with required fields; submit calls `ExpenseService.addExpense()`; submit navigates to `/`; description field optional
+- [x] T013 [P] [US1] Write failing unit tests for `AddExpenseComponent` in `apps/expense-tracker/src/app/components/add-expense/add-expense.component.spec.ts` — test: form invalid when amount empty; form invalid when amount ≤ 0; form invalid when category missing; form valid with required fields; submit calls `ExpenseService.addExpense()`; submit navigates to `/`; description field optional
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Create `AddExpenseComponent` template in `apps/expense-tracker/src/app/components/add-expense/add-expense.component.html` — amount input, date input (defaulting to today), category select (bound to `EXPENSE_CATEGORIES`), description textarea (optional), submit button, validation error messages
-- [ ] T015 [US1] Implement `AddExpenseComponent` class in `apps/expense-tracker/src/app/components/add-expense/add-expense.component.ts` — standalone, `OnPush`, `ReactiveFormsModule`, `FormGroup` with `Validators.required` + `Validators.min(0.01)` on amount, inject `ExpenseService` and `Router`, on valid submit call `addExpense()` then `router.navigate(['/'])`
+- [x] T014 [P] [US1] Create `AddExpenseComponent` template in `apps/expense-tracker/src/app/components/add-expense/add-expense.component.html` — amount input, date input (defaulting to today), category select (bound to `EXPENSE_CATEGORIES`), description textarea (optional), submit button, validation error messages
+- [x] T015 [US1] Implement `AddExpenseComponent` class in `apps/expense-tracker/src/app/components/add-expense/add-expense.component.ts` — standalone, `OnPush`, `ReactiveFormsModule`, `FormGroup` with `Validators.required` + `Validators.min(0.01)` on amount, inject `ExpenseService` and `Router`, on valid submit call `addExpense()` then `router.navigate(['/'])`
 
 **Checkpoint**: User Story 1 independently functional — add expense form validates, saves, and redirects.
 
@@ -90,12 +90,12 @@ and empty state appears when the list is empty.
 
 ### Tests for User Story 2 ⚠️ WRITE FIRST — MUST FAIL BEFORE T018
 
-- [ ] T016 [P] [US2] Write failing unit tests for `DashboardComponent` in `apps/expense-tracker/src/app/components/dashboard/dashboard.component.spec.ts` — test: renders 10 most recent expenses; shows all-time total; shows per-category totals for all 7 categories; shows empty-state element when `expenses$` emits `[]`; does not show empty-state when expenses present
+- [x] T016 [P] [US2] Write failing unit tests for `DashboardComponent` in `apps/expense-tracker/src/app/components/dashboard/dashboard.component.spec.ts` — test: renders 10 most recent expenses; shows all-time total; shows per-category totals for all 7 categories; shows empty-state element when `expenses$` emits `[]`; does not show empty-state when expenses present
 
 ### Implementation for User Story 2
 
-- [ ] T017 [P] [US2] Create `DashboardComponent` template in `apps/expense-tracker/src/app/components/dashboard/dashboard.component.html` — expense list (bound to `recentExpenses$`), all-time total display, per-category totals section, empty-state block (shown via `*ngIf` / `@if` when list is empty), "Add Expense" navigation link/button
-- [ ] T018 [US2] Implement `DashboardComponent` class in `apps/expense-tracker/src/app/components/dashboard/dashboard.component.ts` — standalone, `OnPush`, inject `ExpenseService`; expose `recentExpenses$` (via `map` on `expenses$`), `allTimeTotal$`, `categoryTotals$` as `async`-pipe-ready observables; no direct `localStorage` access
+- [x] T017 [P] [US2] Create `DashboardComponent` template in `apps/expense-tracker/src/app/components/dashboard/dashboard.component.html` — expense list (bound to `recentExpenses$`), all-time total display, per-category totals section, empty-state block (shown via `*ngIf` / `@if` when list is empty), "Add Expense" navigation link/button
+- [x] T018 [US2] Implement `DashboardComponent` class in `apps/expense-tracker/src/app/components/dashboard/dashboard.component.ts` — standalone, `OnPush`, inject `ExpenseService`; expose `recentExpenses$` (via `map` on `expenses$`), `allTimeTotal$`, `categoryTotals$` as `async`-pipe-ready observables; no direct `localStorage` access
 
 **Checkpoint**: User Stories 1 and 2 independently functional — expenses can be recorded and the dashboard renders accurately.
 
@@ -112,14 +112,14 @@ Trigger delete, cancel — verify data is unchanged.
 
 ### Tests for User Story 3 ⚠️ WRITE FIRST — MUST FAIL BEFORE T021
 
-- [ ] T019 [P] [US3] Write failing unit tests for `DeleteConfirmDialogComponent` in `apps/expense-tracker/src/app/components/delete-confirm-dialog/delete-confirm-dialog.component.spec.ts` — test: renders expense amount and category; emits `confirmed` event on confirm click; emits `cancelled` event on cancel click
-- [ ] T020 [P] [US3] Write failing unit tests for the delete flow in `DashboardComponent` — test: clicking delete opens the confirm dialog; confirming calls `ExpenseService.deleteExpense()` with correct id; cancelling does NOT call `deleteExpense()`; dialog closes after confirm or cancel
+- [x] T019 [P] [US3] Write failing unit tests for `DeleteConfirmDialogComponent` in `apps/expense-tracker/src/app/components/delete-confirm-dialog/delete-confirm-dialog.component.spec.ts` — test: renders expense amount and category; emits `confirmed` event on confirm click; emits `cancelled` event on cancel click
+- [x] T020 [P] [US3] Write failing unit tests for the delete flow in `DashboardComponent` — test: clicking delete opens the confirm dialog; confirming calls `ExpenseService.deleteExpense()` with correct id; cancelling does NOT call `deleteExpense()`; dialog closes after confirm or cancel
 
 ### Implementation for User Story 3
 
-- [ ] T021 [P] [US3] Create `DeleteConfirmDialogComponent` template in `apps/expense-tracker/src/app/components/delete-confirm-dialog/delete-confirm-dialog.component.html` — confirm message showing expense amount/category, confirm button, cancel button
-- [ ] T022 [US3] Implement `DeleteConfirmDialogComponent` in `apps/expense-tracker/src/app/components/delete-confirm-dialog/delete-confirm-dialog.component.ts` — standalone, `OnPush`; `@Input() expense: Expense`; `@Output() confirmed = new EventEmitter<void>()`; `@Output() cancelled = new EventEmitter<void>()`
-- [ ] T023 [US3] Wire the delete flow into `DashboardComponent` in `apps/expense-tracker/src/app/components/dashboard/dashboard.component.ts` — add `pendingDeleteExpense: Expense | null` state; show `DeleteConfirmDialogComponent` conditionally; on `confirmed` emit call `expenseService.deleteExpense(id)` and clear pending state; on `cancelled` emit clear pending state
+- [x] T021 [P] [US3] Create `DeleteConfirmDialogComponent` template in `apps/expense-tracker/src/app/components/delete-confirm-dialog/delete-confirm-dialog.component.html` — confirm message showing expense amount/category, confirm button, cancel button
+- [x] T022 [US3] Implement `DeleteConfirmDialogComponent` in `apps/expense-tracker/src/app/components/delete-confirm-dialog/delete-confirm-dialog.component.ts` — standalone, `OnPush`; `@Input() expense: Expense`; `@Output() confirmed = new EventEmitter<void>()`; `@Output() cancelled = new EventEmitter<void>()`
+- [x] T023 [US3] Wire the delete flow into `DashboardComponent` in `apps/expense-tracker/src/app/components/dashboard/dashboard.component.ts` — add `pendingDeleteExpense: Expense | null` state; show `DeleteConfirmDialogComponent` conditionally; on `confirmed` emit call `expenseService.deleteExpense(id)` and clear pending state; on `cancelled` emit clear pending state
 
 **Checkpoint**: All three user stories independently functional.
 
@@ -129,9 +129,9 @@ Trigger delete, cancel — verify data is unchanged.
 
 **Purpose**: Usable styling, end-to-end validation, and code quality review.
 
-- [ ] T024 [P] Add base styles to `apps/expense-tracker/src/styles.css` and inline styles to each component — minimal, readable layout: form layout for add-expense, table or card list for dashboard, dialog overlay for delete confirmation
-- [ ] T025 Serve the app locally (`ng serve`) and validate all acceptance scenarios from `specs/001-expense-tracker/spec.md` end-to-end — add an expense, confirm it appears; view totals; delete an expense, confirm it disappears and totals update; verify empty state on fresh LocalStorage
-- [ ] T026 [P] Review all five source files (model, constants, StorageService, ExpenseService, each component) for Constitution Principle VI compliance — no functions mixing concerns, no magic numbers/strings, all private helpers pure functions
+- [x] T024 [P] Add base styles to `apps/expense-tracker/src/styles.css` and inline styles to each component — minimal, readable layout: form layout for add-expense, table or card list for dashboard, dialog overlay for delete confirmation
+- [x] T025 Serve the app locally (`ng serve`) and validate all acceptance scenarios from `specs/001-expense-tracker/spec.md` end-to-end — add an expense, confirm it appears; view totals; delete an expense, confirm it disappears and totals update; verify empty state on fresh LocalStorage
+- [x] T026 [P] Review all five source files (model, constants, StorageService, ExpenseService, each component) for Constitution Principle VI compliance — no functions mixing concerns, no magic numbers/strings, all private helpers pure functions
 
 ---
 

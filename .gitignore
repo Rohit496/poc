@@ -6,3 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 .virtual-context/
+dist/
+apps/expense-tracker/dist/
+apps/expense-tracker/.angular/
+apps/expense-tracker/node_modules/

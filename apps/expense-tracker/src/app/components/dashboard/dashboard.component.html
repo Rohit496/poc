@@ -1,0 +1,78 @@
+<div class="page">
+  <header class="page-header">
+    <h1>Expense Tracker</h1>
+    <a routerLink="/add" class="btn btn-primary" data-testid="add-btn">+ Add Expense</a>
+  </header>
+
+  @if (recentExpenses$ | async; as expenses) {
+    @if (expenses.length === 0) {
+      <div class="empty-state" data-testid="empty-state">
+        <p>No expenses recorded yet.</p>
+        <a routerLink="/add" class="btn btn-primary">Add your first expense</a>
+      </div>
+    } @else {
+      <section class="summary-section">
+        <div class="summary-card">
+          <h2>All-Time Total</h2>
+          <p class="total-amount" data-testid="all-time-total">
+            ${{ (allTimeTotal$ | async) | number: '1.2-2' }}
+          </p>
+        </div>
+
+        <div class="category-breakdown">
+          <h2>By Category</h2>
+          @if (categoryTotals$ | async; as totals) {
+            @for (cat of categories; track cat) {
+              <div class="category-row" data-testid="category-row">
+                <span class="category-name">{{ cat }}</span>
+                <span class="category-amount">${{ totals[cat] | number: '1.2-2' }}</span>
+              </div>
+            }
+          }
+        </div>
+      </section>
+
+      <section class="recent-section">
+        <h2>Recent Expenses</h2>
+        <table class="expense-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (expense of expenses; track expense.id) {
+              <tr class="expense-row" data-testid="expense-row">
+                <td>{{ expense.date }}</td>
+                <td>{{ expense.category }}</td>
+                <td>{{ expense.description || '—' }}</td>
+                <td>${{ expense.amount | number: '1.2-2' }}</td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-danger"
+                    (click)="onDeleteClick(expense)"
+                    data-testid="delete-btn"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      @if (pendingDeleteExpense) {
+        <app-delete-confirm-dialog
+          [expense]="pendingDeleteExpense"
+          (confirmed)="onDeleteConfirmed()"
+          (cancelled)="onDeleteCancelled()"
+        />
+      }
+    }
+  }
+</div>
