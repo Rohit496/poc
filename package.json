@@ -1,0 +1,18 @@
+{
+  "name": "windsurf-pro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "password-checker.js",
+  "scripts": {
+    "test": "jest",
+    "assistant": "node src/cli.js",
+    "assistant:debug": "node src/cli.js --debug"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
+}
