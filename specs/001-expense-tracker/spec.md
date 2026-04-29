@@ -5,6 +5,13 @@
 **Status**: Draft
 **Input**: User description: "I would like to build a Basic expense tracking app (add, view, delete expenses). Track personal expenses with amount, date, category, and description. Simple dashboard showing recent expenses and basic totals. Do not implement user auth, as this is just a personal tracker for myself."
 
+## Clarifications
+
+### Session 2026-04-29
+
+- Q: What time range should dashboard spending totals cover? → A: All-time total (all recorded expenses, no date filter)
+- Q: What happens when more than 10 expenses exist — are older ones accessible? → A: Top 10 most recent only; older expenses are not accessible from the dashboard but still count toward all-time totals
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Record an Expense (Priority: P1)
@@ -35,7 +42,7 @@ The user opens the dashboard and immediately sees their recent expenses alongsid
 **Acceptance Scenarios**:
 
 1. **Given** the user has recorded expenses, **When** they open the dashboard, **Then** they see the 10 most recent expenses listed with amount, date, category, and description.
-2. **Given** the user has recorded expenses, **When** they view the dashboard, **Then** they see a total spending figure and a breakdown of totals by category for the [NEEDS CLARIFICATION: What time range should spending totals cover? Options: (A) all-time, (B) current calendar month, (C) user-selectable range].
+2. **Given** the user has recorded expenses, **When** they view the dashboard, **Then** they see an all-time total spending figure and an all-time per-category spending breakdown covering every expense ever recorded.
 3. **Given** the user has recorded no expenses, **When** they open the dashboard, **Then** they see a clear empty state message encouraging them to add their first expense.
 
 ---
@@ -59,7 +66,7 @@ The user selects an expense from the list and permanently removes it. The dashbo
 ### Edge Cases
 
 - What happens when the user enters an amount with more than 2 decimal places (e.g., 10.999)?
-- How does the dashboard behave when more than 10 expenses exist — are older ones simply hidden or accessible via pagination/scroll?
+- When more than 10 expenses exist, only the 10 most recent are shown on the dashboard; older expenses are not visible but are included in all-time totals.
 - What happens if the user rapidly submits the add form twice with the same data — are duplicate entries allowed?
 - How is a very long description (e.g., 500+ characters) displayed in the expense list?
 
@@ -72,7 +79,7 @@ The user selects an expense from the list and permanently removes it. The dashbo
 - **FR-003**: System MUST default the expense date to the current date when the add form is opened.
 - **FR-004**: System MUST provide a fixed set of expense categories: Food, Transport, Housing, Entertainment, Health, Shopping, and Other.
 - **FR-005**: System MUST display the 10 most recently added expenses on the dashboard, ordered newest-first.
-- **FR-006**: System MUST display total spending and a per-category breakdown for the time range determined by clarification Q1.
+- **FR-006**: System MUST display an all-time total spending figure and an all-time per-category breakdown covering every expense ever recorded.
 - **FR-007**: System MUST allow users to delete any expense from the expense list.
 - **FR-008**: System MUST display a confirmation prompt before permanently deleting an expense.
 - **FR-009**: System MUST persist all expense data across sessions — data MUST survive closing and reopening the application.
@@ -100,5 +107,5 @@ The user selects an expense from the list and permanently removes it. The dashbo
 - The application is used on a single device with no cross-device sync.
 - Categories are predefined and fixed; users cannot create custom categories in v1.
 - Description is optional — amount, date, and category are the only required fields.
-- The dashboard shows the 10 most recent expenses; a full browseable list is out of scope for v1.
+- The dashboard shows the 10 most recent expenses only; older entries are not accessible from the UI but are included in all-time totals. A full browseable list is out of scope for v1.
 - Amount precision is capped at 2 decimal places; entries with more decimals are rounded on save.

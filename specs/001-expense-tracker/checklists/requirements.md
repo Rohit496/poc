@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — 1 marker in User Story 2 (totals time range)
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,6 +31,5 @@
 
 ## Notes
 
-- One [NEEDS CLARIFICATION] marker remains in User Story 2 (Acceptance Scenario 2): the time range
-  for dashboard spending totals (all-time vs. current month vs. selectable). This choice affects
-  FR-006 and the scope of the dashboard. Resolve before proceeding to /speckit-plan.
+- All clarifications resolved in Session 2026-04-29.
+- Spec is ready for /speckit-plan.
