@@ -16,25 +16,26 @@ User Question
      ▼
 ┌─────────────────────────────────────────────────┐
 │  🟢 STEP 1 — Main AI Understands the Question   │
-│  Extract: intent, key symbols, scope             │
+│  Extract: intent, key symbols, scope    [🆓 FREE]│
 └─────────────────────┬───────────────────────────┘
                       │ (always continue — no shortcuts)
                       ▼
 ┌─────────────────────────────────────────────────┐
 │  🟡 STEP 2 — Fetch Only What Is Needed          │
-│  Write Virtual Context                           │
+│  Write Virtual Context              [🆓 FREE]    │
 │  (.virtual-context/<TASK_ID>.md)                │
 └─────────────────────┬───────────────────────────┘
-                      │ (always continue)
+                      │ (codebase/complex questions only)
                       ▼
 ┌─────────────────────────────────────────────────┐
-│  🔵 STEP 3 — Expert AI Reasons Over Context   │
-│  Skill: ask-expert-reasoning                     │
+│  🔵 STEP 3 — Expert AI Reasons Over Context     │
+│  Skill: ask-expert-reasoning        [💰 PAID]    │
 └─────────────────────┬───────────────────────────┘
                       │ (always continue)
                       ▼
 ┌─────────────────────────────────────────────────┐
-│  🟢 STEP 4 — Main AI Delivers Final Answer    │
+│  🟢 STEP 4 — Main AI Delivers Final Answer      │
+│                                         [🆓 FREE]│
 └─────────────────────┬───────────────────────────┘
                       │
                       ▼
