@@ -1,6 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit } from "@angular/core";
-import { AsyncPipe, DecimalPipe, NgFor } from "@angular/common";
-import { RouterLink } from "@angular/router";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  signal,
+} from "@angular/core";
+import { AsyncPipe, DecimalPipe } from "@angular/common";
 import { Observable, map } from "rxjs";
 import { ExpenseService } from "../../services/expense.service";
 import { StorageService } from "../../services/storage.service";
@@ -16,6 +20,7 @@ import {
   CATEGORY_COLORS,
   CATEGORY_VIEW_STORAGE_KEY,
 } from "../../constants/categories";
+import { AddExpenseComponent } from "../add-expense/add-expense.component";
 import { DeleteConfirmDialogComponent } from "../delete-confirm-dialog/delete-confirm-dialog.component";
 import { DonutChartComponent } from "../donut-chart/donut-chart.component";
 import { buildSlices } from "../../utils/chart.utils";
@@ -28,8 +33,7 @@ const DEFAULT_CATEGORY_VIEW: CategoryView = "list";
   imports: [
     AsyncPipe,
     DecimalPipe,
-    NgFor,
-    RouterLink,
+    AddExpenseComponent,
     DeleteConfirmDialogComponent,
     DonutChartComponent,
   ],
@@ -58,9 +62,11 @@ export class DashboardComponent implements OnInit {
     map((totals) => buildSlices(totals, CATEGORY_COLORS)),
   );
 
-  categoryView: CategoryView = DEFAULT_CATEGORY_VIEW;
+  readonly categoryView = signal<CategoryView>(DEFAULT_CATEGORY_VIEW);
 
-  pendingDeleteExpense: Expense | null = null;
+  readonly showAddModal = signal(false);
+
+  readonly pendingDeleteExpense = signal<Expense | null>(null);
 
   constructor(
     private readonly expenseService: ExpenseService,
@@ -72,27 +78,40 @@ export class DashboardComponent implements OnInit {
       CATEGORY_VIEW_STORAGE_KEY,
     );
     if (saved === "list" || saved === "chart") {
-      this.categoryView = saved;
+      this.categoryView.set(saved);
     }
   }
 
   onToggleView(view: CategoryView): void {
-    this.categoryView = view;
+    this.categoryView.set(view);
     this.storageService.set(CATEGORY_VIEW_STORAGE_KEY, view);
   }
 
   onDeleteClick(expense: Expense): void {
-    this.pendingDeleteExpense = expense;
+    this.pendingDeleteExpense.set(expense);
   }
 
   onDeleteConfirmed(): void {
-    if (this.pendingDeleteExpense) {
-      this.expenseService.deleteExpense(this.pendingDeleteExpense.id);
-      this.pendingDeleteExpense = null;
+    const expense = this.pendingDeleteExpense();
+    if (expense) {
+      this.expenseService.deleteExpense(expense.id);
+      this.pendingDeleteExpense.set(null);
     }
   }
 
   onDeleteCancelled(): void {
-    this.pendingDeleteExpense = null;
+    this.pendingDeleteExpense.set(null);
+  }
+
+  onAddClick(): void {
+    this.showAddModal.set(true);
+  }
+
+  onAddSaved(): void {
+    this.showAddModal.set(false);
+  }
+
+  onAddCancelled(): void {
+    this.showAddModal.set(false);
   }
 }

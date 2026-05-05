@@ -1,11 +1,11 @@
 export type ExpenseCategory =
-  | 'Food'
-  | 'Transport'
-  | 'Housing'
-  | 'Entertainment'
-  | 'Health'
-  | 'Shopping'
-  | 'Other';
+  | "Food"
+  | "Transport"
+  | "Housing"
+  | "Entertainment"
+  | "Health"
+  | "Shopping"
+  | "Other";
 
 export interface Expense {
   id: string;
@@ -16,7 +16,7 @@ export interface Expense {
   createdAt: string;
 }
 
-export type NewExpenseInput = Omit<Expense, 'id' | 'createdAt'>;
+export type NewExpenseInput = Omit<Expense, "id" | "createdAt">;
 
 export interface CategorySlice {
   category: ExpenseCategory;
@@ -28,4 +28,10 @@ export interface CategorySlice {
   sweepAngle: number;
 }
 
-export type CategoryView = 'list' | 'chart';
+export type CategoryView = "list" | "chart";
+
+export interface DonutConfig {
+  outerRadius: number;
+  innerRadius: number;
+  center: number;
+}

@@ -3,25 +3,29 @@
     class="donut-chart"
     viewBox="0 0 200 200"
     preserveAspectRatio="xMidYMid meet"
-    data-testid="donut-chart"
-  >
-    @for (slice of slices; track slice.category) {
+    data-testid="donut-chart">
+    @for (slice of slices(); track slice.category) {
       <path
         [attr.d]="slice.path"
         [attr.fill]="slice.color"
         [attr.data-testid]="'slice-' + slice.category"
         class="donut-slice"
         (mouseenter)="onSliceEnter(slice)"
-        (mouseleave)="onSliceLeave()"
-      />
+        (mouseleave)="onSliceLeave()" />
     }
   </svg>
 
-  @if (activeSlice) {
+  @if (activeSlice(); as active) {
     <div class="chart-tooltip" data-testid="chart-tooltip">
-      <span class="tooltip-category" data-testid="tooltip-category">{{ activeSlice.category }}</span>
-      <span class="tooltip-amount" data-testid="tooltip-amount">${{ activeSlice.amount | number: '1.2-2' }}</span>
-      <span class="tooltip-percentage" data-testid="tooltip-percentage">{{ activeSlice.percentage }}%</span>
+      <span class="tooltip-category" data-testid="tooltip-category">
+        {{ active.category }}
+      </span>
+      <span class="tooltip-amount" data-testid="tooltip-amount">
+        ${{ active.amount | number: "1.2-2" }}
+      </span>
+      <span class="tooltip-percentage" data-testid="tooltip-percentage">
+        {{ active.percentage }}%
+      </span>
     </div>
   }
 </div>

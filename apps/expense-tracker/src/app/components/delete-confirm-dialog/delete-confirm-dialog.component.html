@@ -1,23 +1,23 @@
 <div class="dialog-overlay">
   <div class="dialog">
     <p class="dialog-message">
-      Delete <strong>{{ expense.category }}</strong> expense of
-      <strong>${{ expense.amount | number: '1.2-2' }}</strong>?
-      This action cannot be undone.
+      Delete
+      <strong>{{ expense().category }}</strong>
+      expense of
+      <strong>${{ expense().amount | number: "1.2-2" }}</strong>
+      ? This action cannot be undone.
     </p>
     <div class="dialog-actions">
       <button
         class="btn btn-danger"
         data-testid="confirm-btn"
-        (click)="onConfirm()"
-      >
+        (click)="onConfirm()">
         Delete
       </button>
       <button
         class="btn btn-secondary"
         data-testid="cancel-btn"
-        (click)="onCancel()"
-      >
+        (click)="onCancel()">
         Cancel
       </button>
     </div>

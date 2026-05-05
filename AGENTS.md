@@ -2,63 +2,134 @@
 
 This file governs **automatic agent routing** for every user question.
 No slash command or manual trigger is needed. The AI reads this file on every turn and routes accordingly.
-**General questions → 🟢 Main AI Direct (no paid model). Complex/codebase questions → full 4-step pipeline.**
+**The free model handles everything by default. The paid Expert AI is only called when the free model cannot answer AND the virtual context lacks the needed knowledge.**
+
+## Model Registry
+
+| Tier    | Model                          | When to Use                                                                                                |
+| ------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| 🆓 Free | **SWE-1.6**                    | **Default for everything** — general Qs, Git, hooks, guidelines, _and_ codebase/code Qs it can answer      |
+| 💰 Paid | **Claude Sonnet 4.6 Thinking** | **Fallback only** — invoked when the free model is unsure AND virtual context lacks the needed JIT snippet |
 
 ---
 
-## Automatic Pipeline — Always On
+## Automatic Pipeline — Free Model First, Expert AI as Fallback
 
-Questions are routed based on type. **General/factual questions skip Steps 2 & 3** (no paid model used). Only codebase-specific, technical, or complex questions run the full 4-step pipeline:
+**Core principle:** The free model (`SWE-1.6`) answers _every_ question by default — general, factual, Git, hooks, guidelines, AND codebase/code questions. It only escalates to the paid Expert AI when it cannot answer confidently **and** the virtual context does not already contain the needed knowledge.
+
+### Virtual Context = Just-in-Time (JIT) Memory
+
+Virtual context is **not** a codebase dump and **not** a wide search. It is a tiny, question-specific cache of the exact snippets needed to answer one question.
+
+- **First time** a specific piece of knowledge is needed → fetch only that snippet (≤300 lines) into `.virtual-context/<TASK_ID>.md`.
+- **Next time** the same/similar question appears → the free model reads the existing virtual context and answers directly, **no paid call**.
+- Virtual context grows incrementally, one JIT snippet at a time.
+
+### Decision Flow (per question)
+
+**Step 0 (FIRST, before everything else): Deterministic Escalation Check.**
+If the question matches ANY deterministic trigger (see **Expert AI Escalation Gate → Triggers A** below) AND the active model is not `Claude Sonnet 4.6 Thinking`, **immediately** emit the 🔴 escalation block and STOP. Do **not** check virtual context, do **not** fetch, do **not** answer — even if the answer is cached. This guarantees the gate is reproducible for testing and that complex questions never get stale free-model answers.
+
+If Step 0 doesn't trigger, continue:
+
+1. **Free model reads the question.** Can it answer with built-in knowledge alone? → Answer directly. **STOP.**
+2. **Does virtual context already contain the needed snippet?** → Free model reads it, answers. **STOP.**
+3. **Fetch a minimal JIT snippet** (≤300 lines, only the precise files/functions needed). Can the free model now answer? → Answer, save snippet to virtual context. **STOP.**
+4. **Only if the free model is still unsure** → escalate to the paid Expert AI (Trigger B). Expert AI reasons over the virtual context, returns a distilled answer, and its conclusions are written back into virtual context so future similar questions skip the paid call.
+
+**Cache reuse rule for escalated questions:** Once the user has switched to `Claude Sonnet 4.6 Thinking` and Expert AI has answered (and cached its conclusions), **subsequent questions on the same/similar topic asked back on `SWE-1.6` use Step 2 (cache read)** — they do NOT re-trigger Step 0 unless they introduce new deterministic-trigger phrases. This is the "never pay twice" guarantee.
+
+> **⚠️ Important — Model switching is user-driven.**
+> The AI **cannot** programmatically change the active chat model. The model is selected by the user via the model picker (`⇧⌘/` or the model name button next to the chat input). The AI only asks the user to switch models when it reaches Step 4 (escalation) — see **Expert AI Escalation Gate** below.
+
+### Expert AI Escalation Gate (Step 4 only)
+
+This gate triggers in TWO situations — **either is sufficient**:
+
+**A. Deterministic triggers (MUST escalate, no exceptions):**
+The question matches ANY of the following — the AI must escalate even if it feels it can answer:
+
+- Phrases: _"audit entire"_, _"audit all"_, _"full refactor"_, _"refactor plan"_, _"architectural review"_, _"architectural audit"_, _"deep analysis"_, _"deep dive into"_, _"comprehensive review"_, _"end-to-end review"_, _"migration strategy"_, _"propose a refactor"_, _"identify all bugs"_, _"find all issues"_, _"trade-offs and migration"_.
+- Scope: question requires reading **more than 3 distinct files** to answer correctly.
+- Intent: question asks for **architectural changes**, **multi-file refactors**, **performance audits across the codebase**, or **dependency-graph-impact analysis**.
+- Explicit user request: question contains _"use Expert AI"_, _"use the paid model"_, or _"escalate this"_.
+
+**B. Confidence trigger (fallback):**
+The free model + virtual context cannot answer confidently after Steps 1–3.
+
+If EITHER A or B is true AND the active chat model is not `Claude Sonnet 4.6 Thinking`, the AI MUST stop and reply with exactly this block (no other content):
+
+```
+🔴 [Expert AI Escalation] — paid model required
+
+I could not answer this confidently using the free model + virtual context.
+Escalating to the Expert AI for deeper reasoning.
+
+👉 Please switch the chat model to **Claude Sonnet 4.6 Thinking**, then resend this exact message.
+
+How to switch:
+  • Press ⇧⌘/ to open the model picker, or
+  • Click the model name (bottom-left of the chat input) and select "Claude Sonnet 4.6 Thinking".
+```
+
+After the user resends on the paid model, Expert AI reasons over the virtual context and its answer is cached so the same question never needs the paid model again.
 
 ```
 User Question
      │
      ▼
-┌─────────────────────────────────────────────────┐
-│  🟢 STEP 1 — Main AI Understands the Question   │
-│  Extract: intent, key symbols, scope    [🆓 FREE]│
-└─────────────────────┬───────────────────────────┘
-                      │ (always continue — no shortcuts)
-                      ▼
-┌─────────────────────────────────────────────────┐
-│  🟡 STEP 2 — Fetch Only What Is Needed          │
-│  Write Virtual Context              [🆓 FREE]    │
-│  (.virtual-context/<TASK_ID>.md)                │
-└─────────────────────┬───────────────────────────┘
-                      │ (codebase/complex questions only)
-                      ▼
-┌─────────────────────────────────────────────────┐
-│  🔵 STEP 3 — Expert AI Reasons Over Context     │
-│  Skill: ask-expert-reasoning        [💰 PAID]    │
-└─────────────────────┬───────────────────────────┘
-                      │ (always continue)
-                      ▼
-┌─────────────────────────────────────────────────┐
-│  🟢 STEP 4 — Main AI Delivers Final Answer      │
-│                                         [🆓 FREE]│
-└─────────────────────┬───────────────────────────┘
-                      │
-                      ▼
-               [Answer to User]
+┌──────────────────────────────────────────────────────┐
+│  🟢 STEP 1 — Free model reads the question  [🆓 FREE] │
+│  Can I answer from built-in knowledge alone?          │
+└───────────┬──────────────────────────────┬───────────┘
+            │ YES                          │ NO
+            ▼                              ▼
+     Answer directly            ┌──────────────────────────────────────┐
+     [🆓 FREE] STOP.            │  🟡 STEP 2 — Check virtual context   │
+                                │  Does .virtual-context/* already     │
+                                │  contain the needed snippet?  [🆓]   │
+                                └───────┬──────────────────────┬───────┘
+                                        │ YES                  │ NO
+                                        ▼                      ▼
+                                Answer from cached     ┌──────────────────────────┐
+                                virtual context        │  � STEP 3 — JIT fetch   │
+                                [🆓 FREE] STOP.        │  Pull ≤300 lines of the  │
+                                                       │  exact snippet needed    │
+                                                       │  → save to virtual ctx   │
+                                                       │                   [🆓]   │
+                                                       └───────┬──────────────────┘
+                                                               │
+                                                               ▼
+                                              Can the free model now answer?
+                                                       │                 │
+                                                      YES               NO
+                                                       │                 │
+                                                       ▼                 ▼
+                                               Answer + cache   ┌──────────────────────────┐
+                                               [🆓 FREE] STOP.  │  � STEP 4 — Escalate to │
+                                                                │  paid Expert AI          │
+                                                                │  (model switch gate)     │
+                                                                │  Expert reasons over     │
+                                                                │  virtual ctx, result     │
+                                                                │  cached for next time.   │
+                                                                │                   [💰]   │
+                                                                └──────────────────────────┘
 ```
 
 ---
 
 ## Routing Table — Question Type → Agent
 
-| Question / Task Type                                                     | Agent                       | Reference                                       |
-| ------------------------------------------------------------------------ | --------------------------- | ----------------------------------------------- |
-| General / factual knowledge question                                     | 🟢 Main AI Direct           | Steps 2–3 skipped, no paid model                |
-| Any question (all types)                                                 | 🔵 Full Ask Expert Pipeline | Always Steps 1 → 2 → 3 → 4                      |
-| Codebase-specific / explain code / deep reasoning                        | 🔵 Ask Expert Pipeline      | `.windsurf/workflows/ask-expert.md`             |
-| Frontend bug / UI issue                                                  | 🛠️ Debug Frontend Issue     | `.windsurf/workflows/debug-frontend-issue.md`   |
-| Angular or React hook question (`useState`, `useEffect`, `useRef`, etc.) | 📘 Angular Hooks Skill      | `.windsurf/skills/angular-hooks/SKILL.md`       |
-| Writing / reviewing React functional components                          | 📐 Frontend Guidelines      | `.windsurf/rules/frontend-guidelines.md`        |
-| Git: initialize repo                                                     | 🔧 Git Initialize           | `.windsurf/workflows/speckit.git.initialize.md` |
-| Git: create feature branch                                               | 🌿 Git Feature              | `.windsurf/workflows/speckit.git.feature.md`    |
-| Git: commit after Spec Kit command                                       | 💾 Git Commit               | `.windsurf/workflows/speckit.git.commit.md`     |
-| Git: detect remote URL                                                   | 🔗 Git Remote               | `.windsurf/workflows/speckit.git.remote.md`     |
-| Git: validate branch naming                                              | ✅ Git Validate             | `.windsurf/workflows/speckit.git.validate.md`   |
+| Question / Task Type                                                     | Default Model | Agent                    | Escalation                                                             |
+| ------------------------------------------------------------------------ | ------------- | ------------------------ | ---------------------------------------------------------------------- |
+| General / factual knowledge ("what is X?")                               | 🆓 Free       | 🟢 Main AI Direct        | Never escalates                                                        |
+| Simple codebase / code question (free model already knows)               | 🆓 Free       | 🟢 Main AI Direct        | Escalates only if free model is unsure                                 |
+| Codebase question requiring a specific snippet                           | 🆓 Free       | 🟡 Virtual Context (JIT) | Free model reads JIT snippet, answers. Escalates only if still unsure. |
+| Deep reasoning / research that free model + virtual ctx cannot handle    | 💰 Paid       | � Expert AI Escalation   | Triggered only at Step 4                                               |
+| Frontend bug / UI issue                                                  | 🆓 Free       | 🛠️ Debug Frontend Issue  | Escalates to Expert AI only if root cause is unclear after JIT fetch   |
+| Angular or React hook question (`useState`, `useEffect`, `useRef`, etc.) | 🆓 Free       | 📘 Angular Hooks Skill   | Never escalates                                                        |
+| Writing / reviewing React functional components                          | 🆓 Free       | 📐 Frontend Guidelines   | Never escalates                                                        |
+| Git: initialize / branch / commit / remote / validate                    | 🆓 Free       | 🔧 Speckit Git Agents    | Never escalates                                                        |
 
 ---
 
@@ -73,22 +144,25 @@ Understands the question, fetches targeted context, and delivers the final synth
 
 ---
 
-### 🟡 Virtual Context
+### 🟡 Virtual Context — Just-in-Time Memory
 
-**Runs:** Step 2 — always, every question.
-Collects ≤300 lines of relevant snippets (or notes general knowledge source) and writes them to `.virtual-context/<TASK_ID>.md`.
-**Badge:** `🟡 [Virtual Context] — fetching relevant code snippets…`
+**Runs:** Steps 2 & 3 of the pipeline. **Only fetches highly specific snippets — never whole files, never wide searches.**
+
+- Step 2: _Read_ from existing `.virtual-context/<TASK_ID>.md` if the snippet is already cached.
+- Step 3: _Write_ a new ≤300-line JIT snippet if nothing cached yet.
+- Grows incrementally: each question adds only the precise knowledge it needed.
+- Acts as a cache so follow-up questions on the same topic skip the paid Expert AI.
+  **Badge:** `🟡 [Virtual Context] — JIT snippet fetch / cache read…`
 
 ---
 
-### 🔵 Expert AI (Smart Friend)
+### � Expert AI (Smart Friend) — Fallback Only
 
 **Skill:** `.windsurf/skills/ask-expert/SKILL.md` — name: `ask-expert-reasoning`
 **Rule:** `.windsurf/rules/ask-expert-routing.md`
 **Workflow:** `.windsurf/workflows/ask-expert.md`
-**Runs:** Step 3 — always, every question.
-Reasons exclusively over the virtual context file. Never reads the codebase directly.
-**Badge:** `🔵 [Expert AI] — reasoning over virtual context…`
+**Runs:** Step 4 — **only when the free model + virtual context cannot answer confidently.** Reasons exclusively over the virtual context file; never reads the codebase directly. Its conclusions are written back into virtual context so the same question never hits the paid model twice.
+**Badge:** `� [Expert AI] — escalated reasoning over virtual context…`
 
 ---
 
@@ -123,25 +197,78 @@ Each maps 1:1 to a workflow in `.windsurf/workflows/speckit.git.*.md`.
 
 ---
 
-## Routing Badges — Always Start Response With One
+## Routing Badges — MANDATORY Top-Of-Response Banner
 
-Every response MUST begin with one of these routing badges so the user can see which path ran:
+**Every single response MUST begin with a color-coded banner on the very first line** — no preamble, no greeting, no other text before it. The banner tells the user at a glance which agent ran.
 
-| Badge                                                                   | Meaning                               |
-| ----------------------------------------------------------------------- | ------------------------------------- |
-| `🟢 [Main AI Assistant] — general knowledge, no codebase access needed` | Direct answer, Steps 2–3 skipped      |
-| `🟡 [Virtual Context] — fetching relevant code snippets…`               | Building virtual context (Step 2)     |
-| `🔵 [Expert AI] — reasoning over virtual context…`                      | Expert reasoning in progress (Step 3) |
-| `🛠️ [Debug Frontend Issue] — running debug workflow…`                   | Frontend debug workflow active        |
-| `📘 [Angular Hooks Skill] — beginner-friendly hook explanation…`        | Angular Hooks skill active            |
+### Required banner format
+
+The banner is a **Markdown H3 heading** so it renders large and visible, followed by a one-line italic description. Use EXACTLY one of these:
+
+```markdown
+### 🟢 Main AI Assistant — Free Model, Direct Answer
+
+_Answered from built-in knowledge. No virtual context touched. No paid model._
+```
+
+```markdown
+### 🟡 Virtual Context (JIT) — Cache Read
+
+_Answered using a snippet already cached in `.virtual-context/<TASK_ID>.md`. No re-fetch, no paid model._
+```
+
+```markdown
+### 🟡 Virtual Context (JIT) — New Snippet Fetched
+
+_Fetched a ≤300-line snippet from the codebase and cached it. Free model answered._
+```
+
+```markdown
+### 🔴 Expert AI — Escalated (Paid Model)
+
+_Free model + virtual context were insufficient. Claude Sonnet 4.6 Thinking reasoned over virtual context. Answer cached for future reuse._
+```
+
+```markdown
+### 🛠️ Debug Frontend Issue — Workflow Active
+
+_Running `.windsurf/workflows/debug-frontend-issue.md`._
+```
+
+```markdown
+### 📘 Angular Hooks Skill — Active
+
+_Using `.windsurf/skills/angular-hooks/SKILL.md` for a beginner-friendly explanation._
+```
+
+### Banner → Meaning at a glance
+
+| Color     | Agent             | What happened                                                   |
+| --------- | ----------------- | --------------------------------------------------------------- |
+| 🟢 Green  | Main AI Assistant | Free model answered directly from built-in knowledge            |
+| 🟡 Yellow | Virtual Context   | JIT snippet fetched or cached snippet reused (still free model) |
+| 🔴 Red    | Expert AI         | Paid Claude Sonnet 4.6 Thinking invoked after escalation        |
+| 🛠️ Tool   | Debug Frontend    | Frontend debug workflow active                                  |
+| 📘 Book   | Angular Hooks     | Angular Hooks skill active                                      |
+
+### Strict rules for the banner
+
+- MUST be the **first line** of the response. Nothing before it — no whitespace, no greeting.
+- MUST be an `### H3 heading` with the colored emoji + agent name.
+- MUST be followed by a one-line italic description explaining what happened.
+- If multiple agents ran in sequence (e.g., Virtual Context → Main AI), show the **final/dominant** agent in the banner, and mention the others briefly in the description.
+- For escalation gate responses (Step 4, awaiting model switch), use the 🔴 banner followed ONLY by the escalation block — no other content.
 
 ---
 
 ## Hard Rules
 
-- **Always** start with a routing badge.
-- **General/factual questions** → answer directly with `🟢 [Main AI Assistant]` badge — **do NOT invoke Steps 2 or 3** (no paid model).
-- **Codebase-specific, technical, or complex questions** → run the full 4-step pipeline (Steps 1 → 2 → 3 → 4).
+- **MANDATORY:** Every response MUST start with the color-coded `### H3` banner described in **Routing Badges**. No preamble before the banner, ever.
+- **Free model first, always.** Every question starts on `SWE-1.6`, including codebase/code questions.
+- **Virtual context is JIT memory, not a codebase dump.** Fetch only the exact snippet needed (≤300 lines). Never do wide searches or whole-file reads.
+- **Read virtual context before fetching.** If `.virtual-context/<TASK_ID>.md` already contains the needed snippet, use it — do not re-fetch.
+- **Escalate to Expert AI only as a last resort** — when the free model + virtual context cannot answer confidently. Trigger the model-switch gate at that point, not before.
+- **Cache Expert AI answers** back into virtual context so the same question never pays twice.
 - **Always** use the Angular Hooks skill for hook questions — never use general knowledge.
 - **Always** apply frontend guidelines when writing/reviewing React components.
 - Virtual context files (`.virtual-context/*.md`) are transient — never commit them.

@@ -1,21 +1,28 @@
 <div class="page">
   <header class="page-header">
     <h1>Expense Tracker</h1>
-    <a routerLink="/add" class="btn btn-primary" data-testid="add-btn">+ Add Expense</a>
+    <button
+      class="btn btn-primary"
+      (click)="onAddClick()"
+      data-testid="add-btn">
+      + Add Expense
+    </button>
   </header>
 
   @if (recentExpenses$ | async; as expenses) {
     @if (expenses.length === 0) {
       <div class="empty-state" data-testid="empty-state">
         <p>No expenses recorded yet.</p>
-        <a routerLink="/add" class="btn btn-primary">Add your first expense</a>
+        <button class="btn btn-primary" (click)="onAddClick()">
+          Add your first expense
+        </button>
       </div>
     } @else {
       <section class="summary-section">
         <div class="summary-card">
           <h2>All-Time Total</h2>
           <p class="total-amount" data-testid="all-time-total">
-            ${{ (allTimeTotal$ | async) | number: '1.2-2' }}
+            ${{ allTimeTotal$ | async | number: "1.2-2" }}
           </p>
         </div>
 
@@ -25,26 +32,30 @@
             <div class="view-toggle">
               <button
                 class="btn btn-sm"
-                [class.btn-active]="categoryView === 'list'"
+                [class.btn-active]="categoryView() === 'list'"
                 (click)="onToggleView('list')"
-                data-testid="toggle-list"
-              >List</button>
+                data-testid="toggle-list">
+                List
+              </button>
               <button
                 class="btn btn-sm"
-                [class.btn-active]="categoryView === 'chart'"
+                [class.btn-active]="categoryView() === 'chart'"
                 (click)="onToggleView('chart')"
-                data-testid="toggle-chart"
-              >Chart</button>
+                data-testid="toggle-chart">
+                Chart
+              </button>
             </div>
           </div>
 
-          @if (categoryView === 'list') {
+          @if (categoryView() === "list") {
             <div data-testid="category-list">
               @if (categoryTotals$ | async; as totals) {
                 @for (cat of categories; track cat) {
                   <div class="category-row" data-testid="category-row">
                     <span class="category-name">{{ cat }}</span>
-                    <span class="category-amount">${{ totals[cat] | number: '1.2-2' }}</span>
+                    <span class="category-amount">
+                      ${{ totals[cat] | number: "1.2-2" }}
+                    </span>
                   </div>
                 }
               }
@@ -74,14 +85,13 @@
               <tr class="expense-row" data-testid="expense-row">
                 <td>{{ expense.date }}</td>
                 <td>{{ expense.category }}</td>
-                <td>{{ expense.description || '—' }}</td>
-                <td>${{ expense.amount | number: '1.2-2' }}</td>
+                <td>{{ expense.description || "—" }}</td>
+                <td>${{ expense.amount | number: "1.2-2" }}</td>
                 <td>
                   <button
                     class="btn btn-sm btn-danger"
                     (click)="onDeleteClick(expense)"
-                    data-testid="delete-btn"
-                  >
+                    data-testid="delete-btn">
                     Delete
                   </button>
                 </td>
@@ -91,13 +101,16 @@
         </table>
       </section>
 
-      @if (pendingDeleteExpense) {
+      @if (pendingDeleteExpense(); as pending) {
         <app-delete-confirm-dialog
-          [expense]="pendingDeleteExpense"
+          [expense]="pending"
           (confirmed)="onDeleteConfirmed()"
-          (cancelled)="onDeleteCancelled()"
-        />
+          (cancelled)="onDeleteCancelled()" />
       }
     }
+  }
+
+  @if (showAddModal()) {
+    <app-add-expense (saved)="onAddSaved()" (cancelled)="onAddCancelled()" />
   }
 </div>
