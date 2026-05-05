@@ -1,131 +1,126 @@
-# Ask Expert Agent — Workflow & Documentation
+# AI Agent Routing System — Workflow & Documentation
 
 ## Overview
 
-An **automatic AI routing system** built into Windsurf. Every user question is classified and routed to the correct agent path — no slash commands, no manual steps.
+An **automatic AI routing system** built into Windsurf. Every user question is classified and routed to the correct agent — no slash commands, no manual triggers needed. The AI reads `AGENTS.md` on every turn and routes accordingly.
+
+**Core principle:** The free model (`SWE-1.6`) handles **everything** by default. The paid Expert AI (`Claude Sonnet 4.6 Thinking`) is a **fallback only** — invoked when the free model cannot answer confidently AND virtual context lacks the needed knowledge.
 
 ---
 
-## Agent Tiers
+## Model Registry
 
-| Badge | Agent                 | Model Cost | Role                                                      |
-| ----- | --------------------- | ---------- | --------------------------------------------------------- |
-| 🟢    | **Main AI Assistant** | 🆓 Free    | Parses questions, fetches context, delivers final answers |
-| 🟡    | **Virtual Context**   | 🆓 Free    | Builds a ≤300-line snapshot of relevant codebase code     |
-| 🔵    | **Expert AI**         | 💰 Paid    | Deep reasoning over the virtual context snapshot          |
+| Tier    | Model                          | When to Use                                                                 |
+| ------- | ------------------------------ | --------------------------------------------------------------------------- |
+| 🆓 Free | **SWE-1.6**                    | Default for everything — general, factual, Git, hooks, codebase questions   |
+| 💰 Paid | **Claude Sonnet 4.6 Thinking** | Fallback only — when free model + virtual context cannot answer confidently |
 
 ---
 
-## Routing Decision
+## Agent Roster
+
+| Badge | Agent                   | Cost    | Role                                                         |
+| ----- | ----------------------- | ------- | ------------------------------------------------------------ |
+| 🟢    | **Main AI Assistant**   | 🆓 Free | Answers from built-in knowledge (Steps 1, 2, 4)              |
+| 🟡    | **Virtual Context**     | 🆓 Free | JIT memory — fetches/caches ≤300-line snippets (Steps 2 & 3) |
+| �     | **Expert AI**           | 💰 Paid | Deep reasoning over virtual context (Step 4, fallback only)  |
+| 🛠️    | **Debug Frontend**      | 🆓 Free | Frontend bug diagnosis workflow                              |
+| 📘    | **Angular Hooks Skill** | 🆓 Free | Beginner-friendly hook explanations                          |
+| 📐    | **Frontend Guidelines** | 🆓 Free | React component best practices                               |
+| 🔧    | **Speckit Git Agents**  | 🆓 Free | Git init / branch / commit / remote / validate               |
+
+---
+
+## Decision Flow
+
+Every question follows this **strict order**:
 
 ```
 User Question
-      │
-      ▼
-  ┌─────────────────────────────────────┐
-  │  Is this a general / factual        │
-  │  question? ("what is X?")           │
-  └────────────┬──────────┬──────────-──┘
-               │ YES       │ NO
-               ▼           ▼
-        🟢 Answer      Full 4-Step
-         directly       Pipeline
-        (FREE, stop)    (see below)
-```
-
-### Question Type → Route
-
-| Question Type                        | Route                      | Cost    |
-| ------------------------------------ | -------------------------- | ------- |
-| General / factual ("what is X?")     | 🟢 Main AI Direct          | 🆓 Free |
-| Codebase-specific / explain code     | 🔵 Full Expert Pipeline    | 💰 Paid |
-| Frontend bug / broken UI             | 🛠️ Debug Frontend Workflow | 💰 Paid |
-| Angular / React hook question        | 📘 Angular Hooks Skill     | 🆓 Free |
-| Writing / reviewing React components | 📐 Frontend Guidelines     | 🆓 Free |
-| Git: initialize repo                 | 🔧 Git Initialize workflow | 🆓 Free |
-| Git: create feature branch           | 🌿 Git Feature workflow    | 🆓 Free |
-| Git: commit changes                  | 💾 Git Commit workflow     | 🆓 Free |
-| Git: detect remote URL               | 🔗 Git Remote workflow     | 🆓 Free |
-| Git: validate branch name            | ✅ Git Validate workflow   | 🆓 Free |
-
----
-
-## Full 4-Step Expert Pipeline
-
-Runs only for **codebase-specific, complex, or deep-reasoning questions**.
-
-```
-[User Question]
-      │
-      ▼
-╔══════════════════════════════════════════════╗
-║  STEP 1 — 🟢 Main AI Assistant  [🆓 FREE]     ║
-║                                              ║
-║  Parse intent, symbols, and scope            ║
-║                                              ║
-║  ├─ General/factual? → Answer now. STOP.     ║
-║  └─ Codebase/complex? → Continue ↓           ║
-╚══════════════════════════════════════════════╝
-                      │
-                      ▼
-╔══════════════════════════════════════════════╗
-║  STEP 2 — 🟡 Virtual Context  [🆓 FREE]       ║
-║                                              ║
-║  Run targeted code_search / read_file        ║
-║  Collect ≤300 lines of relevant snippets     ║
-║  Write → .virtual-context/<TASK_ID>.md       ║
-╚══════════════════════════════════════════════╝
-                      │ feeds context
-                      ▼
-╔══════════════════════════════════════════════╗
-║  STEP 3 — 🔵 Expert AI  [💰 PAID]             ║
-║                                              ║
-║  Skill: ask-expert-reasoning                 ║
-║  Reads ONLY the virtual context file         ║
-║  Does NOT access codebase directly           ║
-║  Cites every claim with file:line refs       ║
-╚══════════════════════════════════════════════╝
-                      │ expert answer
-                      ▼
-╔══════════════════════════════════════════════╗
-║  STEP 4 — 🟢 Main AI Assistant  [🆓 FREE]     ║
-║                                              ║
-║  Synthesize + deliver final answer           ║
-║  Include file:line citations                 ║
-╚══════════════════════════════════════════════╝
-                      │
-                      ▼
-               [Answer to User]
+     │
+     ▼
+┌────────────────────────────────────────────────────────┐
+│  ⛔ STEP 0 — Deterministic Escalation Check             │
+│  Does the question match any escalation trigger?        │
+│  (phrases, scope >3 files, architectural intent,        │
+│   or explicit "use Expert AI")                          │
+│                                                         │
+│  YES + model ≠ Claude Sonnet 4.6 Thinking               │
+│  → Emit 🔴 escalation block, STOP immediately.          │
+│    Do NOT check cache. Do NOT fetch. Do NOT answer.     │
+└───────────┬─────────────────────────────────────────────┘
+            │ NO (no trigger matched)
+            ▼
+┌────────────────────────────────────────────────────────┐
+│  🟢 STEP 1 — Free model reads the question  [🆓 FREE]  │
+│  Can I answer from built-in knowledge alone?            │
+└───────────┬──────────────────────────────┬──────────────┘
+            │ YES                          │ NO
+            ▼                              ▼
+     Answer directly            ┌────────────────────────────────────┐
+     🟢 banner. STOP.           │  🟡 STEP 2 — Check virtual context │
+                                │  Does .virtual-context/<TASK_ID>.md│
+                                │  already have the needed snippet?  │
+                                └───────┬────────────────────┬───────┘
+                                        │ YES                │ NO
+                                        ▼                    ▼
+                                 Answer from cache   ┌───────────────────────┐
+                                 🟡 Cache Read        │  🟡 STEP 3 — JIT fetch│
+                                 banner. STOP.        │  Pull ≤300 lines,     │
+                                                      │  save to virtual ctx  │
+                                                      └───────┬───────────────┘
+                                                              │
+                                                              ▼
+                                                Can free model now answer?
+                                                      │              │
+                                                     YES            NO
+                                                      │              │
+                                                      ▼              ▼
+                                              Answer + cache  ┌──────────────────┐
+                                              🟡 New Snippet   │  🔴 STEP 4       │
+                                              banner. STOP.    │  Escalate to     │
+                                                               │  paid Expert AI  │
+                                                               │  (model switch)  │
+                                                               └──────────────────┘
 ```
 
 ---
 
 ## Step-by-Step Details
 
-### Step 1 — Parse the Question · 🟢 Main AI (FREE)
+### Step 0 — Deterministic Escalation Check
 
-Extracts:
+Runs **before anything else**. If the question matches any trigger below AND the active model is not `Claude Sonnet 4.6 Thinking`, the AI emits the 🔴 escalation block and **stops immediately** — no cache check, no fetch, no answer.
 
-- **Intent** — explain / debug / refactor / compare
-- **Key symbols** — function names, class names, file names
-- **Scope** — which directory or layer is relevant
+**Trigger A — Deterministic (must escalate, no exceptions):**
 
-**Decision gate:**
+- **Phrases:** `"audit entire"`, `"audit all"`, `"full refactor"`, `"refactor plan"`, `"architectural review"`, `"architectural audit"`, `"deep analysis"`, `"deep dive into"`, `"comprehensive review"`, `"end-to-end review"`, `"migration strategy"`, `"propose a refactor"`, `"identify all bugs"`, `"find all issues"`, `"trade-offs and migration"`
+- **Scope:** Question requires reading **>3 distinct files**
+- **Intent:** Architectural changes, multi-file refactors, codebase-wide audits, dependency-graph-impact analysis
+- **Explicit:** `"use Expert AI"`, `"use the paid model"`, `"escalate this"`
 
-- General/factual → answer directly, **STOP** (Steps 2–3 never run)
-- Codebase/complex → proceed to Step 2
+**Trigger B — Confidence (fallback):**
+The free model + virtual context cannot answer confidently after Steps 1–3.
 
 ---
 
-### Step 2 — Build Virtual Context · 🟡 (FREE)
+### Step 1 — Direct Answer · 🟢 Main AI (FREE)
 
-Runs targeted searches and reads only what is needed:
+The free model reads the question. If it can answer from built-in knowledge alone → answer directly, **STOP**.
 
-```bash
-TASK_ID=$(date +%Y%m%d-%H%M%S)
-mkdir -p .virtual-context
-# file written → .virtual-context/<TASK_ID>.md
-```
+Examples: general factual questions, simple code concepts, Git commands.
+
+---
+
+### Step 2 — Virtual Context Cache Read · 🟡 (FREE)
+
+Check if `.virtual-context/<TASK_ID>.md` already contains the needed snippet from a previous question. If yes → read the cached snippet, answer, **STOP**.
+
+---
+
+### Step 3 — JIT Fetch · 🟡 (FREE)
+
+Fetch a minimal snippet (≤300 lines) of the exact code needed. Save to `.virtual-context/<TASK_ID>.md`. If the free model can now answer → answer + cache, **STOP**.
 
 Virtual context file format:
 
@@ -153,80 +148,105 @@ Answer using only the snippets above. Cite file:line for every claim.
 
 ---
 
-### Step 3 — Expert AI Reasoning · 🔵 (PAID)
+### Step 4 — Expert AI Escalation · � (PAID)
+
+Only reached if Steps 1–3 all failed to produce a confident answer.
 
 - **Skill invoked:** `ask-expert-reasoning`
-- Reads **only** `.virtual-context/<TASK_ID>.md`
-- Never accesses the codebase directly
+- Reads **only** `.virtual-context/<TASK_ID>.md` — never accesses the codebase directly
 - Cites every claim with `file:line` references
-- If context is insufficient → names the **single** missing file, does not request everything
+- Expert AI conclusions are **cached back** into virtual context so the same question never pays twice
 
-**Output format from Expert AI:**
+**Escalation block** (emitted when model switch is needed):
 
 ```
-### Expert Answer
-<direct answer>
+🔴 [Expert AI Escalation] — paid model required
 
-### Evidence
-<file:line citations>
+I could not answer this confidently using the free model + virtual context.
+Escalating to the Expert AI for deeper reasoning.
 
-### Gaps (if any)
-<single missing file or symbol>
+👉 Please switch the chat model to Claude Sonnet 4.6 Thinking, then resend this exact message.
+
+How to switch:
+  • Press ⇧⌘/ to open the model picker, or
+  • Click the model name (bottom-left of chat input) and select "Claude Sonnet 4.6 Thinking".
 ```
 
 ---
 
-### Step 4 — Deliver Final Answer · 🟢 Main AI (FREE)
+## Cache Reuse Rule ("Never Pay Twice")
 
-Synthesizes the expert reasoning into a clean response:
+Once the user switches to `Claude Sonnet 4.6 Thinking` and Expert AI answers (caching its conclusions), subsequent questions on the **same topic** asked back on `SWE-1.6` use **Step 2 (cache read)** — they do NOT re-trigger Step 0 unless they introduce **new** deterministic-trigger phrases.
 
-1. Direct answer to the user's question
-2. Evidence — `file:line` citations for codebase questions
-3. Confidence level: high / medium / low
+---
+
+## Routing Table — Question Type → Route
+
+| Question Type                                         | Default Model | Agent                    | Escalation                           |
+| ----------------------------------------------------- | ------------- | ------------------------ | ------------------------------------ |
+| General / factual ("what is X?")                      | 🆓 Free       | 🟢 Main AI Direct        | Never                                |
+| Simple codebase question (free model knows)           | 🆓 Free       | 🟢 Main AI Direct        | Only if unsure                       |
+| Codebase question needing a specific snippet          | 🆓 Free       | 🟡 Virtual Context (JIT) | Only if still unsure after JIT       |
+| Deep reasoning / research beyond free model capacity  | 💰 Paid       | 🔴 Expert AI Escalation  | Triggered at Step 4                  |
+| Frontend bug / UI issue                               | 🆓 Free       | 🛠️ Debug Frontend Issue  | Expert AI only if root cause unclear |
+| Angular / React hook question                         | 🆓 Free       | 📘 Angular Hooks Skill   | Never                                |
+| Writing / reviewing React components                  | 🆓 Free       | 📐 Frontend Guidelines   | Never                                |
+| Git: initialize / branch / commit / remote / validate | 🆓 Free       | 🔧 Speckit Git Agents    | Never                                |
+
+---
+
+## Response Banners (Mandatory)
+
+Every response **must** start with a color-coded `### H3` banner as the **very first line** — no preamble, no greeting before it.
+
+| Banner                                                 | Meaning                                         |
+| ------------------------------------------------------ | ----------------------------------------------- |
+| `### 🟢 Main AI Assistant — Free Model, Direct Answer` | Free model answered from built-in knowledge     |
+| `### 🟡 Virtual Context (JIT) — Cache Read`            | Answered from cached virtual context snippet    |
+| `### 🟡 Virtual Context (JIT) — New Snippet Fetched`   | Fetched ≤300 lines, cached, free model answered |
+| `### � Expert AI — Escalated (Paid Model)`             | Paid model invoked after escalation             |
+| `### 🛠️ Debug Frontend Issue — Workflow Active`        | Frontend debug workflow running                 |
+| `### 📘 Angular Hooks Skill — Active`                  | Angular Hooks skill invoked                     |
 
 ---
 
 ## Hard Rules
 
-- **General/factual questions** — always `🟢 Main AI` direct. Steps 2–3 **never** run. No paid model used.
-- **Codebase/complex questions** — always full 4-step pipeline. Expert AI **always** runs at Step 3.
+- **Free model first, always.** Every question starts on `SWE-1.6`.
+- **Step 0 runs before everything.** Deterministic triggers bypass cache and fetch entirely.
+- **Virtual context is JIT memory, not a codebase dump.** Fetch only the exact snippet needed (≤300 lines). Never wide searches or whole-file reads.
+- **Read virtual context before fetching.** If `.virtual-context/<TASK_ID>.md` already has the snippet, use it.
+- **Escalate to Expert AI only as last resort** — when free model + virtual context cannot answer.
+- **Cache Expert AI answers** into virtual context so the same question never pays twice.
+- **Model switching is user-driven.** The AI cannot change the active model programmatically; it only asks the user to switch at Step 4.
 - `.virtual-context/*.md` files are **transient** — never commit them.
-- Expert AI **never** reads the codebase directly — only the virtual context file.
-- Every response **must** begin with a routing badge.
-
----
-
-## Response Routing Badges
-
-Every response starts with one of these to show which path ran:
-
-| Badge                                                                   | Meaning                                     |
-| ----------------------------------------------------------------------- | ------------------------------------------- |
-| `🟢 [Main AI Assistant] — general knowledge, no codebase access needed` | Direct answer, Steps 2–3 skipped (free)     |
-| `🟡 [Virtual Context] — fetching relevant code snippets…`               | Building virtual context (Step 2, free)     |
-| `🔵 [Expert AI] — reasoning over virtual context…`                      | Expert reasoning in progress (Step 3, paid) |
-| `🛠️ [Debug Frontend Issue] — running debug workflow…`                   | Frontend debug workflow active              |
-| `📘 [Angular Hooks Skill] — beginner-friendly hook explanation…`        | Angular Hooks skill active (free)           |
+- Every response **must** begin with a routing banner.
 
 ---
 
 ## File References
 
-| File                                    | Purpose                                                   |
-| --------------------------------------- | --------------------------------------------------------- |
-| `.windsurf/workflows/ask-expert.md`     | Main pipeline workflow definition                         |
-| `.windsurf/skills/ask-expert/SKILL.md`  | Expert AI reasoning skill (`ask-expert-reasoning`)        |
-| `.windsurf/rules/ask-expert-routing.md` | Always-on routing rule with routing table                 |
-| `AGENTS.md`                             | Master agent routing manifest                             |
-| `.virtual-context/<TASK_ID>.md`         | Transient per-question context snapshot (never committed) |
+| File                                     | Purpose                                                      |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| `AGENTS.md`                              | Master agent routing manifest (source of truth)              |
+| `.windsurf/workflows/ask-expert.md`      | Expert pipeline workflow definition                          |
+| `.windsurf/skills/ask-expert/SKILL.md`   | Expert AI reasoning skill (`ask-expert-reasoning`)           |
+| `.windsurf/rules/ask-expert-routing.md`  | Always-on routing rule with routing table                    |
+| `.windsurf/skills/angular-hooks/`        | Angular Hooks beginner skill                                 |
+| `.windsurf/rules/frontend-guidelines.md` | React component guidelines rule                              |
+| `.windsurf/workflows/speckit.git.*.md`   | Git workflow agents (init, branch, commit, remote, validate) |
+| `.virtual-context/<TASK_ID>.md`          | Transient per-question context snapshot (never committed)    |
 
 ---
 
-## Real Example
+## Examples
 
-| Question                            | Route                  | Steps Run           | Cost    |
-| ----------------------------------- | ---------------------- | ------------------- | ------- |
-| "What is Salesforce?"               | 🟢 Main AI Direct      | Step 1 only         | 🆓 Free |
-| "What does AddExpenseComponent do?" | 🔵 Expert Pipeline     | Steps 1 → 2 → 3 → 4 | 💰 Paid |
-| "How do I use useEffect?"           | 📘 Angular Hooks Skill | Skill only          | 🆓 Free |
-| "My button is not rendering"        | 🛠️ Debug Frontend      | Debug workflow      | 💰 Paid |
+| Question                                    | Route                    | Steps Run      | Cost    |
+| ------------------------------------------- | ------------------------ | -------------- | ------- |
+| "What is Salesforce?"                       | 🟢 Main AI Direct        | Step 1 only    | 🆓 Free |
+| "What testing framework does the app use?"  | 🟡 Virtual Context (JIT) | Steps 1 → 3    | 🆓 Free |
+| "Tell me about the app's test config again" | 🟡 Virtual Context Cache | Step 2 only    | 🆓 Free |
+| "Do a full refactor of the service layer"   | � Expert AI Escalation   | Step 0 → gate  | 💰 Paid |
+| "How do I use useEffect?"                   | 📘 Angular Hooks Skill   | Skill only     | 🆓 Free |
+| "My button is not rendering"                | 🛠️ Debug Frontend        | Debug workflow | 🆓 Free |
+| "Audit entire codebase for issues"          | 🔴 Expert AI Escalation  | Step 0 → gate  | 💰 Paid |
