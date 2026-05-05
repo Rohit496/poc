@@ -92,7 +92,7 @@ User Question
                                         │ YES                  │ NO
                                         ▼                      ▼
                                 Answer from cached     ┌──────────────────────────┐
-                                virtual context        │  � STEP 3 — JIT fetch   │
+                                virtual context        │  🔴 STEP 3 — JIT fetch   │
                                 [🆓 FREE] STOP.        │  Pull ≤300 lines of the  │
                                                        │  exact snippet needed    │
                                                        │  → save to virtual ctx   │
@@ -106,7 +106,7 @@ User Question
                                                        │                 │
                                                        ▼                 ▼
                                                Answer + cache   ┌──────────────────────────┐
-                                               [🆓 FREE] STOP.  │  � STEP 4 — Escalate to │
+                                               [🆓 FREE] STOP.  │  🔴 STEP 4 — Escalate to │
                                                                 │  paid Expert AI          │
                                                                 │  (model switch gate)     │
                                                                 │  Expert reasons over     │
@@ -125,7 +125,7 @@ User Question
 | General / factual knowledge ("what is X?")                               | 🆓 Free       | 🟢 Main AI Direct        | Never escalates                                                        |
 | Simple codebase / code question (free model already knows)               | 🆓 Free       | 🟢 Main AI Direct        | Escalates only if free model is unsure                                 |
 | Codebase question requiring a specific snippet                           | 🆓 Free       | 🟡 Virtual Context (JIT) | Free model reads JIT snippet, answers. Escalates only if still unsure. |
-| Deep reasoning / research that free model + virtual ctx cannot handle    | 💰 Paid       | � Expert AI Escalation   | Triggered only at Step 4                                               |
+| Deep reasoning / research that free model + virtual ctx cannot handle    | 💰 Paid       | 🔴 Expert AI Escalation  | Triggered only at Step 4                                               |
 | Frontend bug / UI issue                                                  | 🆓 Free       | 🛠️ Debug Frontend Issue  | Escalates to Expert AI only if root cause is unclear after JIT fetch   |
 | Angular or React hook question (`useState`, `useEffect`, `useRef`, etc.) | 🆓 Free       | 📘 Angular Hooks Skill   | Never escalates                                                        |
 | Writing / reviewing React functional components                          | 🆓 Free       | 📐 Frontend Guidelines   | Never escalates                                                        |
@@ -156,13 +156,13 @@ Understands the question, fetches targeted context, and delivers the final synth
 
 ---
 
-### � Expert AI (Smart Friend) — Fallback Only
+### 🔴 Expert AI (Smart Friend) — Fallback Only
 
 **Skill:** `.windsurf/skills/ask-expert/SKILL.md` — name: `ask-expert-reasoning`
 **Rule:** `.windsurf/rules/ask-expert-routing.md`
 **Workflow:** `.windsurf/workflows/ask-expert.md`
 **Runs:** Step 4 — **only when the free model + virtual context cannot answer confidently.** Reasons exclusively over the virtual context file; never reads the codebase directly. Its conclusions are written back into virtual context so the same question never hits the paid model twice.
-**Badge:** `� [Expert AI] — escalated reasoning over virtual context…`
+**Badge:** `🔴 [Expert AI] — escalated reasoning over virtual context…`
 
 ---
 

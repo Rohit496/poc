@@ -23,7 +23,7 @@ An **automatic AI routing system** built into Windsurf. Every user question is c
 | ----- | ----------------------- | ------- | ------------------------------------------------------------ |
 | 🟢    | **Main AI Assistant**   | 🆓 Free | Answers from built-in knowledge (Steps 1, 2, 4)              |
 | 🟡    | **Virtual Context**     | 🆓 Free | JIT memory — fetches/caches ≤300-line snippets (Steps 2 & 3) |
-| �     | **Expert AI**           | 💰 Paid | Deep reasoning over virtual context (Step 4, fallback only)  |
+| 🔴    | **Expert AI**           | 💰 Paid | Deep reasoning over virtual context (Step 4, fallback only)  |
 | 🛠️    | **Debug Frontend**      | 🆓 Free | Frontend bug diagnosis workflow                              |
 | 📘    | **Angular Hooks Skill** | 🆓 Free | Beginner-friendly hook explanations                          |
 | 📐    | **Frontend Guidelines** | 🆓 Free | React component best practices                               |
@@ -148,7 +148,7 @@ Answer using only the snippets above. Cite file:line for every claim.
 
 ---
 
-### Step 4 — Expert AI Escalation · � (PAID)
+### Step 4 — Expert AI Escalation · 🔴 (PAID)
 
 Only reached if Steps 1–3 all failed to produce a confident answer.
 
@@ -204,7 +204,7 @@ Every response **must** start with a color-coded `### H3` banner as the **very f
 | `### 🟢 Main AI Assistant — Free Model, Direct Answer` | Free model answered from built-in knowledge     |
 | `### 🟡 Virtual Context (JIT) — Cache Read`            | Answered from cached virtual context snippet    |
 | `### 🟡 Virtual Context (JIT) — New Snippet Fetched`   | Fetched ≤300 lines, cached, free model answered |
-| `### � Expert AI — Escalated (Paid Model)`             | Paid model invoked after escalation             |
+| `### 🔴 Expert AI — Escalated (Paid Model)`            | Paid model invoked after escalation             |
 | `### 🛠️ Debug Frontend Issue — Workflow Active`        | Frontend debug workflow running                 |
 | `### 📘 Angular Hooks Skill — Active`                  | Angular Hooks skill invoked                     |
 
@@ -246,7 +246,7 @@ Every response **must** start with a color-coded `### H3` banner as the **very f
 | "What is Salesforce?"                       | 🟢 Main AI Direct        | Step 1 only    | 🆓 Free |
 | "What testing framework does the app use?"  | 🟡 Virtual Context (JIT) | Steps 1 → 3    | 🆓 Free |
 | "Tell me about the app's test config again" | 🟡 Virtual Context Cache | Step 2 only    | 🆓 Free |
-| "Do a full refactor of the service layer"   | � Expert AI Escalation   | Step 0 → gate  | 💰 Paid |
+| "Do a full refactor of the service layer"   | 🔴 Expert AI Escalation  | Step 0 → gate  | 💰 Paid |
 | "How do I use useEffect?"                   | 📘 Angular Hooks Skill   | Skill only     | 🆓 Free |
 | "My button is not rendering"                | 🛠️ Debug Frontend        | Debug workflow | 🆓 Free |
 | "Audit entire codebase for issues"          | 🔴 Expert AI Escalation  | Step 0 → gate  | 💰 Paid |
