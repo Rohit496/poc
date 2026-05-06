@@ -1,0 +1,6 @@
+# Ignore all virtual context cache files (JIT snippets)
+*.md
+
+# But track this .gitignore and .gitkeep
+!.gitignore
+!.gitkeep
