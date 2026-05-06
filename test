@@ -1,15 +1,136 @@
-User requirement (strict, non-negotiable):
+🟢 Main AI Assistant — Free Model, Direct Answer
+Step-by-step guide to test every scenario in the AGENTS.md routing workflow.
 
-PART 1 — Banner at top of every reply:
-Every reply MUST start with a colored ### H3 banner as the VERY FIRST LINE, followed by a one-line italic description, then the answer. Banners:
-- ### 🟢 Main AI Assistant — Free Model, Direct Answer
-- ### 🟡 Virtual Context (JIT) — Cache Read
-- ### 🟡 Virtual Context (JIT) — New Snippet Fetched
-- ### 🔴 Expert AI — Escalated (Paid Model)
-- ### 🛠️ Debug Frontend Issue — Workflow Active
-- ### 📘 Angular Hooks Skill — Active
+Let me read the full file first to ensure I cover every branch.
 
-PART 2 — Decision Flow (STRICT ORDER):
+Testing Guide: AGENTS.md Routing Workflow — All Scenarios
+Below are 8 test scenarios covering every branch of the decision flow. For each, I provide the exact prompt to type, expected behavior, and what to verify.
 
-STEP 0 (FIRST, before cache, before fetch, before answer):
-If the question matches ANY deterministic escalation trigger AND active model is not Claude Sonnet 4.6 Thinking → IMMEDIATELY emit 🔴 banner + escalation block, STOP. Do NOT check virtual context cache, do NOT fetch, do NOT answer — even if cache has the answer. This makes the gate reproducible for testing.
+Pre-requisites
+Ensure the active chat model is SWE-1.6 (the free model) — this is the default starting point for all tests.
+Delete (or rename) the .virtual-context folder so you start with a clean cache.
+Open a new chat for each test to avoid cross-contamination.
+Scenario 1 — Step 1: Direct Answer (General/Factual)
+Prompt: What is the difference between let and const in JavaScript?
+
+Expected:
+
+Banner: ### 🟢 Main AI Assistant — Free Model, Direct Answer
+Answers from built-in knowledge. No files read, no virtual context touched.
+Verify:
+
+✅ Banner is first line, no preamble
+✅ No .virtual-context file created
+✅ No tool calls to read codebase files
+Scenario 2 — Step 1: Direct Answer (Git / Speckit Agent)
+Prompt: How do I initialize a git repository?
+
+Expected:
+
+Banner: ### 🟢 Main AI Assistant — Free Model, Direct Answer
+Uses built-in knowledge (may invoke speckit git workflow)
+Verify:
+
+✅ No escalation
+✅ Answers directly
+Scenario 3 — Step 1: Angular Hooks Skill
+Prompt: Explain useEffect to me like I'm a beginner
+
+Expected:
+
+Banner: ### 📘 Angular Hooks Skill — Active
+Invokes the angular-hooks-for-beginners skill
+Verify:
+
+✅ Correct banner (📘, not 🟢)
+✅ Skill is actually invoked (you'll see the skill tool call in the output)
+✅ Never escalates
+Scenario 4 — Step 2: Virtual Context Cache Read
+Setup: First, ask a codebase question that triggers a JIT fetch (see Scenario 5). Then in a new message in the same chat, ask a follow-up on the same topic.
+
+Prompt (first): What does the expense tracker's angular.json configure? Prompt (follow-up): What build options does that angular.json use?
+
+Expected on follow-up:
+
+Banner: ### 🟡 Virtual Context (JIT) — Cache Read
+Reads from the already-cached .virtual-context/*.md file — no new fetch
+Verify:
+
+✅ Yellow banner with "Cache Read"
+✅ No new file reads beyond the virtual context file
+✅ No escalation
+Scenario 5 — Step 3: JIT Fetch (New Snippet)
+Prompt: What testing framework does the expense tracker use and how is it configured?
+
+Expected:
+
+Banner: ### 🟡 Virtual Context (JIT) — New Snippet Fetched
+Reads jest.config.js or package.json (≤300 lines)
+Creates a .virtual-context/<TASK_ID>.md with the fetched snippet
+Verify:
+
+✅ Yellow banner with "New Snippet Fetched"
+✅ A new file appears in .virtual-context
+✅ The snippet is ≤300 lines
+✅ No escalation
+Scenario 6 — Step 0: Deterministic Escalation (Trigger A — Phrases)
+Prompt: Do a full refactor of the expense tracker module
+
+Expected:
+
+Banner: ### 🔴 Expert AI — Escalated (Paid Model) (or the exact escalation block)
+The only content is the 🔴 escalation block with model-switch instructions
+No answer attempted, no virtual context checked
+Verify:
+
+✅ Red banner, escalation block only
+✅ Instructions to switch to Claude Sonnet 4.6 Thinking
+✅ No codebase reads, no .virtual-context writes
+✅ Reproducible — re-sending the same message gives the same gate
+Also test these trigger phrases (one per chat):
+
+Audit entire codebase for performance issues
+Give me an architectural review of this project
+Do a deep analysis of the data flow
+Propose a refactor of the service layer
+Identify all bugs in the app
+What's the migration strategy for upgrading Angular?
+Scenario 7 — Step 0: Deterministic Escalation (Trigger A — Explicit Request)
+Prompt: Use Expert AI to explain the routing table
+
+Expected: Same as Scenario 6 — immediate 🔴 escalation block, no answer.
+
+Also test: Escalate this — how does the data model work?
+
+Verify:
+
+✅ Exact same escalation behavior regardless of how simple the underlying question is
+Scenario 8 — Cache Reuse After Escalation ("Never Pay Twice")
+This tests the full round-trip:
+
+On SWE-1.6, ask: Do a deep dive into the expense tracker architecture
+Expected: 🔴 escalation block (Step 0 triggers)
+Switch model to Claude Sonnet 4.6 Thinking, resend the same message
+Expected: ### 🔴 Expert AI — Escalated (Paid Model) banner, detailed answer, conclusions cached into .virtual-context
+Switch back to SWE-1.6, ask: Tell me more about the expense tracker architecture
+Expected: ### 🟡 Virtual Context (JIT) — Cache Read — reads the cached Expert AI conclusions, does NOT re-trigger Step 0 (no new deterministic trigger phrase introduced)
+Verify:
+
+✅ Step 3 uses cache, not escalation
+✅ No paid model call on the follow-up
+✅ If you re-introduce a trigger phrase (e.g., Do a comprehensive review of the architecture), it should re-trigger Step 0
+Quick Reference Checklist
+#	Scenario	Banner	Paid?	Virtual Ctx
+1	General factual	🟢	No	None
+2	Git/Speckit	🟢	No	None
+3	Hooks	📘	No	None
+4	Cache read	🟡 Cache	No	Read
+5	JIT fetch	🟡 Fetch	No	Write
+6	Phrase trigger	🔴	Gate	None
+7	Explicit trigger	🔴	Gate	None
+8	Post-escalation reuse	🟡 Cache	No	Read
+Edge Cases Worth Testing
+Frontend bug — My expense tracker form is broken, the submit button doesn't work → should show ### 🛠️ Debug Frontend Issue
+React component review — Review this React component for best practices → should apply frontend guidelines rule
+Scope trigger (>3 files) — How do all the config files (angular.json, jest.config.js, tsconfig.json, package.json) interact? → should trigger 🔴 escalation (requires reading >3 files)
+Banner missing — If you ever see a reply without a banner, say banner missing and the AI should resend with the correct banner
