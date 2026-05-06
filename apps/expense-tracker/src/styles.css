@@ -223,14 +223,6 @@ body {
   font-size: 1.05rem;
 }
 
-/* Add expense form */
-.expense-form {
-  background: #fff;
-  border-radius: 8px;
-  padding: 28px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
 .field {
   margin-bottom: 20px;
   display: flex;
@@ -270,22 +262,6 @@ body {
 .error {
   font-size: 0.82rem;
   color: #dc2626;
-}
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.back-link {
-  font-size: 0.9rem;
-  color: #6b7280;
-  text-decoration: none;
-}
-
-.back-link:hover {
-  color: #1a1a1a;
 }
 
 /* Delete confirm dialog overlay */

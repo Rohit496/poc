@@ -1,5 +1,9 @@
-<div class="dialog-overlay">
-  <div class="dialog">
+<div class="dialog-overlay" (click)="onCancel()">
+  <div
+    class="dialog"
+    role="dialog"
+    aria-label="Confirm delete"
+    (click)="$event.stopPropagation()">
     <p class="dialog-message">
       Delete
       <strong>{{ expense().category }}</strong>

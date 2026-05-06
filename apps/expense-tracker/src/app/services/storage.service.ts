@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class StorageService {
   get<T>(key: string): T | null {
     try {
@@ -12,7 +12,11 @@ export class StorageService {
   }
 
   set<T>(key: string, value: T): void {
-    localStorage.setItem(key, JSON.stringify(value));
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Quota exceeded or other storage error — fail silently
+    }
   }
 
   remove(key: string): void {

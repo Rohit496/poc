@@ -2,7 +2,11 @@
   class="dialog-overlay"
   (click)="onCancel()"
   data-testid="add-expense-overlay">
-  <div class="dialog dialog-lg" (click)="$event.stopPropagation()">
+  <div
+    class="dialog dialog-lg"
+    role="dialog"
+    aria-label="Add expense"
+    (click)="$event.stopPropagation()">
     <h2 class="dialog-title">Add Expense</h2>
 
     <form
