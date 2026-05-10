@@ -1,0 +1,65 @@
+🔹 1. Simple Text (Email Body)
+❌ BEFORE (Old Way)
+String body = 'Dear Customer,\n' +
+              'Thank you for your order.\n' +
+              'Regards, Team';
+✅ AFTER (Summer ’26)
+String body = '''
+Dear Customer,
+Thank you for your order.
+Regards, Team
+''';
+🔹 2. SOQL Query
+❌ BEFORE
+String query = 'SELECT Id, Name, Email ' +
+               'FROM Contact ' +
+               'WHERE CreatedDate = TODAY';
+✅ AFTER
+String query = '''
+SELECT Id, Name, Email
+FROM Contact
+WHERE CreatedDate = TODAY
+''';
+🔹 3. JSON Payload
+❌ BEFORE
+String payload = '{' +
+                 '"name": "Rahul",' +
+                 '"email": "rahul@example.com"' +
+                 '}';
+✅ AFTER
+String payload = '''
+{
+  "name": "Rahul",
+  "email": "rahul@example.com"
+}
+''';
+🔹 4. HTML Email Template
+❌ BEFORE
+String htmlBody = '<html>' +
+                  '<body>' +
+                  '<h1>Welcome!</h1>' +
+                  '<p>Thanks for joining us.</p>' +
+                  '</body>' +
+                  '</html>';
+✅ AFTER
+String htmlBody = '''
+<html>
+  <body>
+    <h1>Welcome!</h1>
+    <p>Thanks for joining us.</p>
+  </body>
+</html>
+''';
+🔹 5. Debug Logs
+❌ BEFORE
+System.debug('===== DEBUG INFO =====\n' +
+             'User: Rahul\n' +
+             'Status: Active\n' +
+             '======================');
+✅ AFTER
+System.debug('''
+===== DEBUG INFO =====
+User: Rahul
+Status: Active
+======================
+''');
