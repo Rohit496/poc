@@ -1,71 +1,124 @@
+Here’s a polished version with your point added clearly:
+
+---
+
 Hey team 👋
 
-Most of us have been working closely with LLMs — feeding JSON configs, API responses, and schema files into ChatGPT, Claude, Copilot and similar tools. By now we've all felt the friction of large JSON eating up context window space just through structural noise — brackets, quotes, repeated key names across every array row.
+Most of us have been working closely with LLMs — feeding JSON configs, API responses, schema files, and sample payloads into ChatGPT, Claude, Copilot, and similar tools.
 
-TOON (Token-Optimized Object Notation) has been gaining traction as a practical solution to exactly that. It's a compact, human-readable format that strips away the overhead while keeping every value intact and fully readable by the model.
+By now, we have all felt the same friction: large JSON files consume a lot of context window space, not because of the actual data, but because of structural noise — brackets, quotes, commas, and repeated key names across every array row.
 
-I built a VS Code extension around it — JSON to TOON Converter (v1.0.2) — so we don't have to rely on external websites or third-party tools to do the conversion. Everything runs natively inside VS Code. Your data never leaves your machine.
+I know there are already many extensions and tools available in the market for JSON formatting, minifying, and conversion. But this extension is different. It is focused specifically on **LLM-friendly token optimization** — helping developers convert JSON into a more compact format that reduces unnecessary token usage while keeping the data readable and useful for AI tools.
 
-What it does
+That is where **TOON — Token-Optimized Object Notation** — comes in.
 
-It converts JSON into TOON — a compact, quote-free format that cuts structural noise: no repeated brackets, no redundant key names across every row, no surrounding quotes.
+TOON is a compact, human-readable format that removes unnecessary overhead while keeping every value intact and easy for the model to understand.
 
-Real numbers from the extension's own benchmark:
+I built a VS Code extension around it:
 
-JSON: 665 characters / ~92 tokens
-TOON: 237 characters / ~41 tokens
-55% fewer tokens. Same data.
-On large API responses or deeply nested config files the savings are significantly higher.
+**JSON to TOON Converter v1.0.2**
 
-Three ways to use it — all inside VS Code, no extra tools
+The goal is simple: convert JSON to TOON directly inside VS Code without relying on external websites or third-party tools.
 
-CodeLens — a → Convert to TOON link appears inline above line 1 of any JSON file. Just click it.
-Right-click — works in the editor and in the Explorer panel. Right-click any .json file → Convert to TOON.
-Command Palette — Ctrl+Shift+P / Cmd+Shift+P → Convert to TOON.
-Output panel
+Everything runs natively inside VS Code.
+Your data never leaves your machine.
 
-After converting, a panel opens with live before/after stats (lines, characters, estimated LLM tokens), syntax highlighting that matches your VS Code theme, a one-click Copy button, and a Save as .toon option.
+## What it does
 
-Install
+It converts JSON into TOON — a compact, quote-free format that cuts structural noise:
 
-Open VSX (VS Code, Cursor, Windsurf, VSCodium compatible)
-Search: JSON to TOON by Rohit or publisher RohitKumar
+No repeated brackets.
+No redundant key names across every row.
+No unnecessary surrounding quotes.
 
-VS Code 1.85.0+, MIT licensed, no account needed.
+## Real benchmark from the extension
 
-Drop any questions or feedback here — happy to discuss edge cases or take suggestions for the next version. 🙌
+**JSON:** 665 characters / ~92 tokens
+**TOON:** 237 characters / ~41 tokens
 
+That is around **55% fewer tokens** with the same data.
 
-==================
-Token Calculations
-==================
+For large API responses, deeply nested config files, or schema-heavy JSON, the savings can be even more useful.
 
-Lines: 77 → 38 — 51% fewer lines
+## Three ways to use it inside VS Code
 
-Straightforward line count split on \n.
+**1. CodeLens**
+A **Convert to TOON** link appears inline above line 1 of any JSON file. Just click it.
 
+**2. Right-click menu**
+Works in both the editor and Explorer panel.
+Right-click any `.json` file and choose **Convert to TOON**.
 
+**3. Command Palette**
+Use `Ctrl + Shift + P` or `Cmd + Shift + P`, then run **Convert to TOON**.
+
+## Output panel
+
+After conversion, a clean output panel opens with:
+
+Live before/after stats
+Lines, characters, and estimated LLM token count
+Syntax highlighting based on your VS Code theme
+One-click Copy button
+Save as `.toon` option
+
+## Install
+
+Available on **Open VSX**, compatible with VS Code, Cursor, Windsurf, and VSCodium.
+
+Search for:
+
+**JSON to TOON by Rohit**
+or publisher: **RohitKumar**
+
+Requirements:
+
+VS Code 1.85.0+
+MIT licensed
+No account required
+
+## Token calculation example
+
+**Lines:** 77 → 38
+That is **51% fewer lines**
+
+```text
 (77 - 38) / 77 = 39 / 77 = 0.506 → 51%
-Characters: 1,695 → 1,200 — 29% fewer chars
+```
 
-Counts characters with newlines stripped (newlines are not counted as characters in either format).
+**Characters:** 1,695 → 1,200
+That is **29% fewer characters**
 
-
+```text
 (1,695 - 1,200) / 1,695 = 495 / 1,695 = 0.292 → 29%
-Est. Tokens: ~565 → ~412 — 27% fewer tokens
+```
 
-This is where it gets interesting. The rule is ~3 characters = 1 token (empirical average for BPE tokenizers used by GPT-4, Claude, Gemini).
+**Estimated tokens:** ~565 → ~412
+That is **27% fewer tokens**
 
-But JSON and TOON are treated differently on purpose:
+The estimation uses a simple approximation:
 
-JSON tokens — newlines are stripped before dividing, because in JSON newlines are just visual formatting. The brackets define the structure.
+```text
+~3 characters = 1 token
+```
 
+For JSON, newlines are stripped before estimating tokens because JSON structure is defined by brackets and keys.
+
+```text
 1,695 chars ÷ 3 = 565 tokens
-TOON tokens — newlines are kept before dividing, because in TOON newlines are semantic row separators (like CSV). Removing them would misrepresent the actual token cost.
+```
 
-TOON has 38 lines → 37 newline characters
-1,200 + 37 = 1,237 chars ÷ 3 = 412 tokens
+For TOON, newlines are kept because they act as semantic row separators, similar to CSV.
+
+```text
+1,200 chars + 37 newline characters = 1,237 chars
+1,237 ÷ 3 = 412 tokens
+```
+
 Token reduction:
 
-
+```text
 (565 - 412) / 565 = 153 / 565 = 0.270 → 27%
+```
+
+I would love to hear your feedback, suggestions, or edge cases. Happy to improve this further in the next version. 🙌
